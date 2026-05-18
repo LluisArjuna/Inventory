@@ -1,0 +1,30 @@
+<nav class="flex items-center justify-between px-6 py-4 bg-gray-900 text-white">
+  <div class="flex items-center">
+    <a routerLink="/" class="text-xl font-bold">Inventory</a>
+  </div>
+
+  <div class="flex-1 max-w-md mx-8">
+    <input
+      type="text"
+      placeholder="Search inventories..."
+      [ngModel]="searchQuery"
+      (ngModelChange)="onSearchInput($event)"
+      class="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:border-blue-500"
+    />
+  </div>
+
+  <div class="flex items-center gap-4">
+    @if (currentUser()) {
+      <a routerLink="/my-inventories" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition">
+        My Inventories
+      </a>
+      <button (click)="logout()" class="px-4 py-2 border border-gray-500 hover:bg-gray-800 rounded transition">
+        Logout
+      </button>
+    } @else {
+      <a routerLink="/login" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded transition">
+        Login
+      </a>
+    }
+  </div>
+</nav>
