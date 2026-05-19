@@ -18,6 +18,10 @@ export class InventoriesService {
     );
   }
 
+  getByUserId(userId: string, page = 0, size = 20): Observable<Page<Inventory>> {
+    return this.api.get<Page<Inventory>>(`${this.basePath}/user/${userId}`, { page, size });
+  }
+
   getById(id: string): Observable<Inventory> {
     return this.api.getById<Inventory>(this.basePath, id);
   }
