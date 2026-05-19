@@ -1,12 +1,18 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/guards/auth.guard';
-import { Login } from './features/auth/login/login';
-import { Register } from './features/auth/register/register';
+import { authGuard, guestGuard } from '@core/guards/auth.guard';
+import { Login } from '@features/auth/login/login';
+import { Register } from '@features/auth/register/register';
+import { MyInventories } from '@features/inventories/my-inventories/my-inventories';
 
 export const routes: Routes = [
   {
+    path: 'my-inventories',
+    component: MyInventories,
+    canActivate: [authGuard]
+  },
+  {
     path: '',
-    component: Login, 
+    component: Login,
     canActivate: [authGuard],
   },
   {
