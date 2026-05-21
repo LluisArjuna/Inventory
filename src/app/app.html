@@ -1,4 +1,11 @@
-<app-navbar></app-navbar>
+<app-navbar
+  (onCreateInventory)="showCreateDialog.set(true)"
+/>
+@if (showCreateDialog()) {
+    <div class="fixed inset-0 bg-black/30 z-40 ">
+      <app-create-inventory (onClose)="showCreateDialog.set(false)"/>
+    </div>
+}
 <main>
-  <router-outlet></router-outlet>
+  <router-outlet />
 </main>
