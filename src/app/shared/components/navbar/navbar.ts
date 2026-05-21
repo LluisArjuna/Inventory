@@ -16,6 +16,7 @@ export class Navbar {
   readonly currentUser = this.auth.currentUser;
 
   readonly onSearch = output<string>();
+  readonly onCreateInventory = output<void>();
 
   onSearchInput(value: string): void {
     this.onSearch.emit(value);
