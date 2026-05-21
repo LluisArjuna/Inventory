@@ -5,6 +5,12 @@ export interface Inventory {
   isPublic: boolean;
   userId: string;
 }
+export interface CreateInventoryRequest {
+  name: string;
+  description?: string;
+  isPublic: boolean;
+  firebaseUid: string;
+}
 
 export interface InventoryFilters {
   categoryId?: string;

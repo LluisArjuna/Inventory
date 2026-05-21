@@ -1,5 +1,5 @@
 export type { User } from './user.model';
-export type { Inventory, InventoryFilters } from './inventory.model';
+export type { Inventory, CreateInventoryRequest, InventoryFilters } from './inventory.model';
 export type { Item, ItemFilters } from './item.model';
 export type { Category } from './category.model';
 export type { Coordinate } from './coordinate.model';
