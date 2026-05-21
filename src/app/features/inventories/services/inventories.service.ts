@@ -1,10 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { ApiService } from '@core/services/api.service';
-import type { Inventory, InventoryFilters, Page } from '@shared/models';
+import type { Inventory, CreateInventoryRequest, InventoryFilters, Page } from '@shared/models';
 
-type CreateInventory = Omit<Inventory, 'id'>;
 type UpdateInventory = Partial<Inventory>;
+
+
 
 @Injectable({ providedIn: 'root' })
 export class InventoriesService {
@@ -26,7 +27,7 @@ export class InventoriesService {
     return this.api.getById<Inventory>(this.basePath, id);
   }
 
-  create(data: CreateInventory): Observable<Inventory> {
+  create(data: CreateInventoryRequest): Observable<Inventory> {
     return this.api.create<Inventory>(
       this.basePath,
       data as unknown as Record<string, unknown>
