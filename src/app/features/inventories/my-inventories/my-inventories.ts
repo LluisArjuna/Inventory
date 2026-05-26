@@ -4,10 +4,11 @@ import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
 import { InventoryCard } from '@shared/components/inventory-card/inventory-card';
 import type { Inventory, Page } from '@shared/models';
+import { SkeletonCard } from "@shared/components/skeleton-card/skeleton-card";
 
 @Component({
   selector: 'app-my-inventories',
-  imports: [InventoryCard],
+  imports: [InventoryCard, SkeletonCard],
   templateUrl: './my-inventories.html'
 })
 export class MyInventories implements OnInit {

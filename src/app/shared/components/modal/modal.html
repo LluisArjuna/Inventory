@@ -1,0 +1,8 @@
+@if (open()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 bg-black/50" (click)="onClose.emit()"></div>
+    <div class="relative bg-white rounded-lg p-6 z-10 max-w-md w-full mx-4 shadow-xl">
+      <ng-content />
+    </div>
+  </div>
+}
