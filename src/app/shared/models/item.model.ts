@@ -8,6 +8,8 @@ export interface Item {
   inventoryId: string;
   categoryId: string;
   coordinateId?: string;
+  coordX?: number;
+  coordY?: number;
   photos?: Photo[];
 }
 
