@@ -19,6 +19,10 @@ export class InventoriesService {
     );
   }
 
+  getPublic(page = 0, size = 20): Observable<Page<Inventory>> {
+    return this.api.get<Page<Inventory>>(`${this.basePath}/public`, { page, size });
+  }
+
   getByUserId(userId: string, page = 0, size = 20): Observable<Page<Inventory>> {
     return this.api.get<Page<Inventory>>(`${this.basePath}/user/${userId}`, { page, size });
   }
