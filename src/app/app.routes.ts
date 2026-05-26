@@ -4,8 +4,13 @@ import { Login } from '@features/auth/login/login';
 import { Register } from '@features/auth/register/register';
 import { MyInventories } from '@features/inventories/my-inventories/my-inventories';
 import { EditInventory } from '@features/inventories/edit-inventory/edit-inventory';
+import { PublicInventories } from '@features/inventories/public-inventories/public-inventories';
 
 export const routes: Routes = [
+  {
+    path: '',
+    component: PublicInventories
+  },
   {
     path: 'my-inventories',
     component: MyInventories,
@@ -15,11 +20,6 @@ export const routes: Routes = [
     path: 'inventories/:id/edit',
     component: EditInventory,
     canActivate: [authGuard]
-  },
-  {
-    path: '',
-    component: Login,
-    canActivate: [authGuard],
   },
   {
     path: 'login',
