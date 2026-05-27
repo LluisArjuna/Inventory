@@ -5,11 +5,12 @@ import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
 import { CategoriesService } from '@features/items/services/categories.service';
 import { CreateItem } from '@features/items/create-item/create-item';
+import { FormActions } from '@shared/components/form-actions/form-actions';
 import type { Inventory, Item, Category } from '@shared/models';
 
 @Component({
   selector: 'app-edit-inventory',
-  imports: [FormsModule, CreateItem],
+  imports: [FormsModule, CreateItem, FormActions],
   templateUrl: './edit-inventory.html'
 })
 export class EditInventory implements OnInit {
@@ -70,7 +71,7 @@ export class EditInventory implements OnInit {
 
   private loadItems(): void {
     this.itemsLoading.set(true);
-    this.itemsService.getAll({ inventoryId: this.inventoryId }).subscribe({
+    this.itemsService.getAll(0, 20, { inventoryId: this.inventoryId }).subscribe({
       next: (page) => {
         this.items.set(page.content);
         this.itemsLoading.set(false);

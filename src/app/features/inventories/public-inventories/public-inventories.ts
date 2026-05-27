@@ -2,11 +2,12 @@ import { Component, inject, signal, computed, type OnInit } from '@angular/core'
 import { InventoriesService } from '../services/inventories.service';
 import { InventoryCard } from '@shared/components/inventory-card/inventory-card';
 import { SkeletonCard } from '@shared/components/skeleton-card/skeleton-card';
+import { Pagination } from '@shared/components/pagination/pagination';
 import type { Inventory } from '@shared/models';
 
 @Component({
   selector: 'app-public-inventories',
-  imports: [InventoryCard, SkeletonCard],
+  imports: [InventoryCard, SkeletonCard, Pagination],
   templateUrl: './public-inventories.html'
 })
 export class PublicInventories implements OnInit {
@@ -19,7 +20,6 @@ export class PublicInventories implements OnInit {
   readonly currentPage = signal(0);
 
   readonly isEmpty = computed(() => !this.loading() && this.inventories().length === 0);
-  readonly pages = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i));
 
   ngOnInit(): void {
     this.loadInventories();
@@ -46,4 +46,5 @@ export class PublicInventories implements OnInit {
     this.currentPage.set(page);
     this.loadInventories();
   }
+
 }
