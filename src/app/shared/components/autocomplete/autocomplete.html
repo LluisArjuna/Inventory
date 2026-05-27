@@ -1,0 +1,26 @@
+<div class="relative">
+  <input
+    type="text"
+    [ngModel]="query()"
+    (ngModelChange)="query.set($event); onInput()"
+    (focus)="onInput()"
+    (blur)="onBlur()"
+    (keydown)="onKeydown($event)"
+    [placeholder]="placeholder()"
+    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+  />
+
+  @if (showDropdown() && filtered().length > 0) {
+    <ul class="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+      @for (item of filtered(); track item.id; let i = $index) {
+        <li
+          (mousedown)="select(item)"
+          class="px-3 py-2 text-sm cursor-pointer"
+          [class]="i === highlightedIndex() ? 'bg-blue-100' : 'hover:bg-gray-100'"
+        >
+          {{ displayFn()(item) }}
+        </li>
+      }
+    </ul>
+  }
+</div>

@@ -2,15 +2,20 @@ import { Component, inject, signal, type OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InventoriesService } from '../services/inventories.service';
-import type { Inventory } from '@shared/models';
+import { ItemsService } from '@features/items/services/items.service';
+import { CategoriesService } from '@features/items/services/categories.service';
+import { CreateItem } from '@features/items/create-item/create-item';
+import type { Inventory, Item, Category } from '@shared/models';
 
 @Component({
   selector: 'app-edit-inventory',
-  imports: [FormsModule],
+  imports: [FormsModule, CreateItem],
   templateUrl: './edit-inventory.html'
 })
 export class EditInventory implements OnInit {
-  private readonly service = inject(InventoriesService);
+  private readonly inventoriesService = inject(InventoriesService);
+  private readonly itemsService = inject(ItemsService);
+  private readonly categoriesService = inject(CategoriesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -22,6 +27,16 @@ export class EditInventory implements OnInit {
   readonly saving = signal(false);
   readonly error = signal('');
 
+  readonly items = signal<Item[]>([]);
+  readonly itemsLoading = signal(false);
+  readonly categoryMap = signal<Record<string, string>>({});
+  readonly showCreateDialog = signal(false);
+
+  protected readonly imgUrl = (url: string | null | undefined): string =>
+    url?.includes('/upload/') ? url.replace('/upload/', '/upload/f_auto,q_auto/') : url ?? '';
+
+  inventoryId = '';
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -29,19 +44,48 @@ export class EditInventory implements OnInit {
       return;
     }
 
-    this.service.getById(id).subscribe({
+    this.inventoryId = id;
+
+    this.categoriesService.getAll().subscribe({
+      next: (page) => {
+        const map: Record<string, string> = {};
+        page.content.forEach((c: Category) => { map[c.id] = c.name; });
+        this.categoryMap.set(map);
+      }
+    });
+
+    this.inventoriesService.getById(id).subscribe({
       next: (inv) => {
         this.inventory.set(inv);
         this.name.set(inv.name);
         this.description.set(inv.description ?? '');
         this.isPublic.set(inv.isPublic);
         this.loading.set(false);
+        this.loadItems();
       },
       error: () => {
         this.error.set('Failed to load inventory');
         this.loading.set(false);
       }
     });
+  }
+
+  private loadItems(): void {
+    this.itemsLoading.set(true);
+    this.itemsService.getAll({ inventoryId: this.inventoryId }).subscribe({
+      next: (page) => {
+        this.items.set(page.content);
+        this.itemsLoading.set(false);
+      },
+      error: () => {
+        this.itemsLoading.set(false);
+      }
+    });
+  }
+
+  onItemCreated(): void {
+    this.showCreateDialog.set(false);
+    this.loadItems();
   }
 
   cancel(): void {
@@ -55,7 +99,7 @@ export class EditInventory implements OnInit {
     this.saving.set(true);
     this.error.set('');
 
-    this.service.update(inv.id, {
+    this.inventoriesService.update(inv.id, {
       name: this.name().trim(),
       description: this.description().trim() || undefined,
       isPublic: this.isPublic()
