@@ -1,0 +1,9 @@
+<label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+  <input
+    type="checkbox"
+    [ngModel]="checked()"
+    (ngModelChange)="checked.set($event)"
+    class="rounded border-gray-300"
+  />
+  {{ label() }}
+</label>
