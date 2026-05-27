@@ -32,6 +32,10 @@ export class ApiService {
     return this.http.delete<void>(`${this.baseUrl}${path}/${id}`);
   }
 
+  upload<T>(path: string, formData: FormData): Observable<T> {
+    return this.http.post<T>(`${this.baseUrl}${path}`, formData);
+  }
+
   private toParams(params?: Params): HttpParams | undefined {
     if (!params) return undefined;
     let httpParams = new HttpParams();
