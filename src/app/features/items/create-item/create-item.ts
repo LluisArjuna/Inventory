@@ -31,10 +31,8 @@ export class CreateItem {
   readonly selectedCategory = signal<Category | null>(null);
   readonly selectedFile = signal<File | null>(null);
   readonly categories = signal<Category[]>([]);
-  
   readonly creating = signal(false);
   readonly converting = signal(false);
-  readonly error = signal('');
 
   readonly marker = signal<L.Marker | null>(null);
   readonly coordText = signal('');
@@ -116,7 +114,6 @@ export class CreateItem {
     if (!this.canCreate) return;
 
     this.creating.set(true);
-    this.error.set('');
 
     const latLng = this.marker()!.getLatLng();
 
@@ -132,13 +129,11 @@ export class CreateItem {
         }).subscribe({
           next: (item) => this.uploadPhoto(item.id),
           error: () => {
-            this.error.set('Failed to create item');
             this.creating.set(false);
           }
         });
       },
       error: () => {
-        this.error.set('Failed to save location');
         this.creating.set(false);
       }
     });
@@ -165,7 +160,6 @@ export class CreateItem {
         this.onClose.emit();
       },
       error: () => {
-        this.error.set('Item created but photo upload failed');
         this.creating.set(false);
         this.onCreated.emit();
         this.onClose.emit();

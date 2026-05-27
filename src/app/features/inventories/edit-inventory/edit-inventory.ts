@@ -25,7 +25,6 @@ export class EditInventory implements OnInit {
   readonly isPublic = signal(false);
   readonly loading = signal(true);
   readonly saving = signal(false);
-  readonly error = signal('');
 
   readonly items = signal<Item[]>([]);
   readonly itemsLoading = signal(false);
@@ -64,7 +63,6 @@ export class EditInventory implements OnInit {
         this.loadItems();
       },
       error: () => {
-        this.error.set('Failed to load inventory');
         this.loading.set(false);
       }
     });
@@ -97,7 +95,6 @@ export class EditInventory implements OnInit {
     if (!inv || !this.name().trim()) return;
 
     this.saving.set(true);
-    this.error.set('');
 
     this.inventoriesService.update(inv.id, {
       name: this.name().trim(),
@@ -108,7 +105,6 @@ export class EditInventory implements OnInit {
         this.router.navigate(['/my-inventories']);
       },
       error: () => {
-        this.error.set('Failed to update inventory');
         this.saving.set(false);
       }
     });

@@ -20,14 +20,12 @@ export class CreateInventory {
   readonly description = signal('');
   readonly isPublic = signal(false);
   readonly creating = signal(false);
-  readonly error = signal('');
 
   create(): void {
     const firebaseUid = this.auth.currentUser()?.id;
     if (!firebaseUid || !this.name().trim()) return;
 
     this.creating.set(true);
-    this.error.set('');
 
     this.service.create({
       name: this.name().trim(),
@@ -40,7 +38,6 @@ export class CreateInventory {
         this.onClose.emit();
       },
       error: () => {
-        this.error.set('Failed to create inventory');
         this.creating.set(false);
       }
     });
