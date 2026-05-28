@@ -1,25 +1,25 @@
 import { Component, inject, input, output, signal, effect, afterNextRender } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ApiService } from '@core/services/api.service';
 import { CategoriesService } from '../services/categories.service';
 import { CoordinatesService } from '../services/coordinates.service';
 import { ItemsService } from '../services/items.service';
-import { ImageService } from '@shared/services/image.service';
+import { PhotoService } from '../services/photo.service';
 import { Autocomplete } from '@shared/components/autocomplete/autocomplete';
+import { Form, FormField, TextInput, TextArea } from '@shared/components/form';
+import { Modal } from '@shared/components/modal/modal';
 import type { Category } from '@shared/models';
 import * as L from 'leaflet';
 
 @Component({
   selector: 'app-create-item',
-  imports: [FormsModule, Autocomplete],
+  imports: [FormsModule, Autocomplete, Form, FormField, TextInput, TextArea, Modal],
   templateUrl: './create-item.html'
 })
 export class CreateItem {
-  private readonly api = inject(ApiService);
-  private readonly imageService = inject(ImageService);
   private readonly categoriesService = inject(CategoriesService);
   private readonly coordinatesService = inject(CoordinatesService);
   private readonly itemsService = inject(ItemsService);
+  private readonly photoService = inject(PhotoService);
 
   readonly inventoryId = input.required<string>();
   readonly onClose = output<void>();
@@ -32,7 +32,6 @@ export class CreateItem {
   readonly selectedFile = signal<File | null>(null);
   readonly categories = signal<Category[]>([]);
   readonly creating = signal(false);
-  readonly converting = signal(false);
 
   readonly marker = signal<L.Marker | null>(null);
   readonly coordText = signal('');
@@ -80,22 +79,9 @@ export class CreateItem {
     });
   }
 
-  async onFileSelected(event: Event): Promise<void> {
+  onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    this.converting.set(true);
-    this.selectedFile.set(file);
-
-    try {
-      const webp = await this.imageService.toWebp(file);
-      this.selectedFile.set(webp);
-    } catch {
-      this.selectedFile.set(file);
-    }
-
-    this.converting.set(false);
+    this.selectedFile.set(input.files?.[0] ?? null);
   }
 
   get canCreate(): boolean {
@@ -105,8 +91,7 @@ export class CreateItem {
       this.year()! > 0 &&
       this.selectedCategory() !== null &&
       this.marker() !== null &&
-      !this.creating() &&
-      !this.converting()
+      !this.creating()
     );
   }
 
@@ -148,12 +133,7 @@ export class CreateItem {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('itemId', itemId);
-    formData.append('position', '0');
-
-    this.api.upload('/photos', formData).subscribe({
+    this.photoService.upload(itemId, file, 0).subscribe({
       next: () => {
         this.creating.set(false);
         this.onCreated.emit();
