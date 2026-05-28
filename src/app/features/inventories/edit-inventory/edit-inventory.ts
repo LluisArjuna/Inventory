@@ -1,16 +1,15 @@
 import { Component, inject, signal, type OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
 import { CategoriesService } from '@features/items/services/categories.service';
 import { CreateItem } from '@features/items/create-item/create-item';
-import { FormActions } from '@shared/components/form-actions/form-actions';
+import { Form, TextInput, TextArea, Checkbox } from '@shared/components/form';
 import type { Inventory, Item, Category } from '@shared/models';
 
 @Component({
   selector: 'app-edit-inventory',
-  imports: [FormsModule, CreateItem, FormActions],
+  imports: [CreateItem, Form, TextInput, TextArea, Checkbox],
   templateUrl: './edit-inventory.html'
 })
 export class EditInventory implements OnInit {
