@@ -5,10 +5,11 @@ import { InventoriesService } from '../services/inventories.service';
 import { InventoryCard } from '@shared/components/inventory-card/inventory-card';
 import type { Inventory, Page } from '@shared/models';
 import { SkeletonCard } from "@shared/components/skeleton-card/skeleton-card";
+import { Pagination } from '@shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-my-inventories',
-  imports: [InventoryCard, SkeletonCard],
+  imports: [InventoryCard, SkeletonCard, Pagination],
   templateUrl: './my-inventories.html'
 })
 export class MyInventories implements OnInit {
@@ -26,7 +27,6 @@ export class MyInventories implements OnInit {
   readonly toggling = signal<Set<string>>(new Set());
 
   readonly isEmpty = computed(() => !this.loading() && this.inventories().length === 0);
-  readonly pages = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i));
 
   ngOnInit(): void {
     this.loadInventories();

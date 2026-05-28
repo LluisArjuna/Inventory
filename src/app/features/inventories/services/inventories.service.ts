@@ -1,60 +1,45 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { ApiService } from '@core/services/api.service';
-import type { Inventory, CreateInventoryRequest, InventoryFilters, Page } from '@shared/models';
+import { createCrud } from '@core/services/base-crud.service';
+import type { Inventory, CreateInventoryRequest, Page } from '@shared/models';
 
 type UpdateInventory = Partial<Inventory>;
-
-
 
 @Injectable({ providedIn: 'root' })
 export class InventoriesService {
   private readonly api = inject(ApiService);
-  private readonly basePath = '/inventories';
+  private readonly crud = createCrud<Inventory, CreateInventoryRequest, UpdateInventory>('/inventories');
 
-  getAll(filters?: InventoryFilters): Observable<Page<Inventory>> {
-    return this.api.get<Page<Inventory>>(
-      this.basePath,
-      filters as Record<string, string | number | boolean | undefined>
-    );
+  getAll(page = 0, size = 20, filters?: Record<string, string | number | boolean | undefined>): Observable<Page<Inventory>> {
+    return this.crud.getAll(page, size, filters);
   }
 
   getPublic(page = 0, size = 20): Observable<Page<Inventory>> {
-    return this.api.get<Page<Inventory>>(`${this.basePath}/public`, { page, size });
+    return this.api.get<Page<Inventory>>('/inventories/public', { page, size });
   }
 
   getByUserId(userId: string, page = 0, size = 20): Observable<Page<Inventory>> {
-    return this.api.get<Page<Inventory>>(`${this.basePath}/user/${userId}`, { page, size });
+    return this.api.get<Page<Inventory>>(`/inventories/user/${userId}`, { page, size });
   }
 
   getById(id: string): Observable<Inventory> {
-    return this.api.getById<Inventory>(this.basePath, id);
+    return this.crud.getById(id);
   }
 
   create(data: CreateInventoryRequest): Observable<Inventory> {
-    return this.api.create<Inventory>(
-      this.basePath,
-      data as unknown as Record<string, unknown>
-    );
+    return this.crud.create(data);
   }
 
   update(id: string, data: UpdateInventory): Observable<Inventory> {
-    return this.api.update<Inventory>(
-      this.basePath,
-      id,
-      data as unknown as Record<string, unknown>
-    );
+    return this.crud.update(id, data);
   }
 
   delete(id: string): Observable<void> {
-    return this.api.delete(this.basePath, id);
+    return this.crud.delete(id);
   }
 
   toggleVisibility(id: string, isPublic: boolean): Observable<Inventory> {
-    return this.api.update<Inventory>(
-      this.basePath,
-      id,
-      { isPublic } as unknown as Record<string, unknown>
-    );
+    return this.api.update<Inventory>('/inventories', id, { isPublic } as unknown as Record<string, unknown>);
   }
 }

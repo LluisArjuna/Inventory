@@ -1,12 +1,12 @@
 import { Component, inject, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
+import { Form, TextInput, TextArea, Checkbox } from '@shared/components/form';
 
 @Component({
   selector: 'app-create-inventory',
-  imports: [FormsModule],
+  imports: [Form, TextInput, TextArea, Checkbox],
   templateUrl: './create-inventory.html'
 })
 export class CreateInventory {
@@ -20,14 +20,12 @@ export class CreateInventory {
   readonly description = signal('');
   readonly isPublic = signal(false);
   readonly creating = signal(false);
-  readonly error = signal('');
 
   create(): void {
     const firebaseUid = this.auth.currentUser()?.id;
     if (!firebaseUid || !this.name().trim()) return;
 
     this.creating.set(true);
-    this.error.set('');
 
     this.service.create({
       name: this.name().trim(),
@@ -40,7 +38,6 @@ export class CreateInventory {
         this.onClose.emit();
       },
       error: () => {
-        this.error.set('Failed to create inventory');
         this.creating.set(false);
       }
     });

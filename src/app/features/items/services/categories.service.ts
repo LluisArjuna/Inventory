@@ -1,13 +1,12 @@
-import { Injectable, inject } from '@angular/core';
-import type { Observable } from 'rxjs';
-import { ApiService } from '@core/services/api.service';
-import type { Category, Page } from '@shared/models';
+import { Injectable } from '@angular/core';
+import { createCrud } from '@core/services/base-crud.service';
+import type { Category } from '@shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class CategoriesService {
-  private readonly api = inject(ApiService);
+  private readonly crud = createCrud<Category>('/categories');
 
-  getAll(page = 0, size = 100): Observable<Page<Category>> {
-    return this.api.get<Page<Category>>('/categories', { page, size });
+  getAll(page = 0, size = 100) {
+    return this.crud.getAll(page, size);
   }
 }
