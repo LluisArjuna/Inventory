@@ -1,12 +1,12 @@
 import { Component, inject, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
+import { Form, TextInput, TextArea, Checkbox } from '@shared/components/form';
 
 @Component({
   selector: 'app-create-inventory',
-  imports: [FormsModule],
+  imports: [Form, TextInput, TextArea, Checkbox],
   templateUrl: './create-inventory.html'
 })
 export class CreateInventory {
