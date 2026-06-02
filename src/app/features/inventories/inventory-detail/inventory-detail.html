@@ -1,0 +1,63 @@
+<div class="max-w-4xl mx-auto p-6">
+  @if (loading()) {
+    <p class="text-gray-500">Loading inventory...</p>
+  } @else {
+    @if (inventory(); as inv) {
+      <button (click)="router.navigate(['/'])" class="text-sm text-blue-600 hover:underline mb-4 inline-block">&larr; Back to inventories</button>
+
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-2xl font-bold text-gray-900">{{ inv.name }}</h1>
+          <span class="px-2 py-0.5 text-xs font-medium rounded-full"
+                [class]="inv.isPublic ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
+            {{ inv.isPublic ? 'Public' : 'Private' }}
+          </span>
+        </div>
+        @if (inv.description) {
+          <p class="text-gray-600">{{ inv.description }}</p>
+        }
+      </div>
+
+      <div class="border-t pt-6">
+        <app-item-filter
+          [categories]="categories()"
+          (filterChange)="onFilterChange($event)"
+        />
+
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-gray-900">Items</h2>
+          <div class="flex gap-3">
+            @if (items().length > 0) {
+              <button (click)="router.navigate(['/inventories', inv.id, 'map'])" class="text-sm text-blue-600 hover:underline">
+                View on Map
+              </button>
+              <button (click)="router.navigate(['/inventories', inv.id, 'stats'])" class="text-sm text-blue-600 hover:underline">
+                Statistics
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (items().length === 0) {
+          <p class="text-gray-500">This inventory has no items yet.</p>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (item of items(); track item.id) {
+              <app-item-card
+                [item]="item"
+                [categoryName]="categoryMap().get(item.categoryId) ?? ''"
+                (view)="goToItemDetail($event)"
+              />
+            }
+          </div>
+
+          <app-pagination
+            [currentPage]="currentPage()"
+            [totalPages]="totalPages()"
+            (pageChange)="goToPage($event)"
+          />
+        }
+      </div>
+    }
+  }
+</div>
