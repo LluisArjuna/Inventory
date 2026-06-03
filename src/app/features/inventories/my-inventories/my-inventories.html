@@ -20,6 +20,7 @@
       @for (inv of inventories(); track inv.id) {
         <app-inventory-card
           [inventory]="inv"
+          [firstPhotoUrl]="inv.firstPhotoUrl ?? null"
           [userName]="auth.currentUser()?.email ?? ''"
           [showActions]="true"
           (toggleVisibility)="onToggleVisibility($event)"
