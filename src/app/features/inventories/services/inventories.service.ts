@@ -15,8 +15,8 @@ export class InventoriesService {
     return this.crud.getAll(page, size, filters);
   }
 
-  getPublic(page = 0, size = 20): Observable<Page<Inventory>> {
-    return this.api.get<Page<Inventory>>('/inventories/public', { page, size });
+  getPublic(page = 0, size = 20, filters?: Record<string, string | number | boolean | undefined>): Observable<Page<Inventory>> {
+    return this.api.get<Page<Inventory>>('/inventories/public', { page, size, ...filters });
   }
 
   getByUserId(userId: string, page = 0, size = 20): Observable<Page<Inventory>> {
