@@ -11,9 +11,13 @@ export class InventoryCard {
   readonly firstPhotoUrl = input<string | null>(null);
   readonly showActions = input(false);
 
+  readonly view = output<string>();
   readonly edit = output<string>();
   readonly delete = output<string>();
   readonly toggleVisibility = output<string>();
+
+  protected readonly imgUrl = (url: string | null | undefined): string =>
+    url?.includes('/upload/') ? url.replace('/upload/', '/upload/f_auto,q_auto/') : url ?? '';
 
   readonly truncatedDescription = computed(() => {
     const desc = this.inventory().description;
