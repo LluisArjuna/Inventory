@@ -1,19 +1,24 @@
 import { Component, inject, signal, type OnInit, type OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
 import { CategoriesService } from '@features/items/services/categories.service';
+import { MapService } from '@shared/services/map.service';
+import { BackButton } from '@shared/components/back-button/back-button';
 import type { Inventory, Item } from '@shared/models';
 import * as L from 'leaflet';
 
 @Component({
   selector: 'app-inventory-map',
+  imports: [BackButton],
   templateUrl: './inventory-map.html'
 })
 export class InventoryMap implements OnInit, OnDestroy {
   private readonly inventoriesService = inject(InventoriesService);
   private readonly itemsService = inject(ItemsService);
   private readonly categoriesService = inject(CategoriesService);
+  private readonly mapService = inject(MapService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
 
@@ -30,19 +35,16 @@ export class InventoryMap implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.router.navigate(['/']); return; }
 
-    this.categoriesService.getAll().subscribe({
-      next: (catPage) => {
+    forkJoin({
+      catPage: this.categoriesService.getAll(),
+      inventory: this.inventoriesService.getById(id)
+    }).subscribe({
+      next: ({ catPage, inventory }) => {
         const map = new Map<string, string>();
         for (const c of catPage.content) map.set(c.id, c.name);
         this.categoryMap.set(map);
-
-        this.inventoriesService.getById(id).subscribe({
-          next: (inv) => {
-            this.inventory.set(inv);
-            this.loadItems(inv.id);
-          },
-          error: () => this.router.navigate(['/'])
-        });
+        this.inventory.set(inventory);
+        this.loadItems(inventory.id);
       },
       error: () => this.router.navigate(['/'])
     });
@@ -62,25 +64,14 @@ export class InventoryMap implements OnInit, OnDestroy {
   }
 
   private initMap(): void {
-    const el = document.getElementById('inventory-map');
-    if (!el || this.map) return;
+    if (this.map) return;
 
     const items = this.geocodedItems();
     if (items.length === 0) return;
 
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    });
-
     const center: L.LatLngExpression = [items[0].coordX!, items[0].coordY!];
-    this.map = L.map(el, { center, zoom: 13 });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
-
-    setTimeout(() => this.map!.invalidateSize(), 100);
+    this.map = this.mapService.createMap('inventory-map', center);
+    if (!this.map) return;
 
     const markers = items.map(item => this.createMarker(item));
     this.markers = L.layerGroup(markers).addTo(this.map);
@@ -129,7 +120,7 @@ export class InventoryMap implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.map?.remove();
+    this.mapService.destroyMap(this.map);
     this.map = null;
   }
 }
