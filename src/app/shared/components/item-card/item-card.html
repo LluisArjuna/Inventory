@@ -1,0 +1,42 @@
+<div (click)="view.emit(item().id)" class="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm cursor-pointer">
+  @if (item().photos?.[0]; as photo) {
+    <img [src]="imgUrl(photo.url)" [alt]="photo.altText ?? item().name" class="h-36 w-full object-cover" />
+  } @else {
+    <div class="h-36 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">No photo</div>
+  }
+
+  <div class="p-3 space-y-1">
+    <h3 class="font-semibold text-gray-900 truncate">{{ item().name }}</h3>
+
+    @if (truncatedDescription()) {
+      <p class="text-sm text-gray-600 truncate">{{ truncatedDescription() }}</p>
+    }
+
+    <div class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <span class="bg-gray-100 px-2 py-0.5 rounded">{{ item().year }}</span>
+      @if (categoryName()) {
+        <span class="bg-gray-100 px-2 py-0.5 rounded">{{ categoryName() }}</span>
+      }
+      @if (item().coordX != null && item().coordY != null) {
+        <span class="bg-gray-100 px-2 py-0.5 rounded">{{ locationName() || 'Locating...' }}</span>
+      }
+    </div>
+
+    @if (showActions()) {
+      <div class="pt-3 border-t border-gray-100 flex gap-2">
+        <button
+          (click)="$event.stopPropagation(); edit.emit(item().id)"
+          class="flex-1 px-3 py-1.5 text-xs font-medium rounded bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+        >
+          Edit
+        </button>
+        <button
+          (click)="$event.stopPropagation(); delete.emit(item().id)"
+          class="flex-1 px-3 py-1.5 text-xs font-medium rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+        >
+          Delete
+        </button>
+      </div>
+    }
+  </div>
+</div>
