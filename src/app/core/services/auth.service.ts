@@ -16,6 +16,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { User } from '@shared/models';
 import { ApiService } from './api.service';
+import { STORAGE_KEYS } from '../constants/storage-keys';
 
 interface AuthResponse {
   token: string;
@@ -37,9 +38,9 @@ export class AuthService {
   readonly isLoading = this.loadingSignal.asReadonly();
 
   constructor() {
-    const token = localStorage.getItem('auth_token');
-    const email = localStorage.getItem('user_email');
-    const id = localStorage.getItem('user_id');
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+    const email = localStorage.getItem(STORAGE_KEYS.USER_EMAIL);
+    const id = localStorage.getItem(STORAGE_KEYS.USER_ID);
 
     if (token && email && id) {
       this.userSignal.set({ id, email });
@@ -47,9 +48,9 @@ export class AuthService {
 
     onAuthStateChanged(this.auth, (firebaseUser) => {
       if (!firebaseUser && !this.userSignal()) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_email');
-        localStorage.removeItem('user_id');
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
+        localStorage.removeItem(STORAGE_KEYS.USER_ID);
       }
       this.loadingSignal.set(false);
     });
@@ -83,21 +84,21 @@ export class AuthService {
 
   async logout(): Promise<void> {
     await signOut(this.auth);
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_email');
-    localStorage.removeItem('user_id');
+    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
+    localStorage.removeItem(STORAGE_KEYS.USER_ID);
     this.userSignal.set(null);
     await this.router.navigate(['/login']);
   }
 
   getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
   }
 
   private setSession(token: string, id: string, email: string): void {
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('user_email', email);
-    localStorage.setItem('user_id', id);
+    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.USER_EMAIL, email);
+    localStorage.setItem(STORAGE_KEYS.USER_ID, id);
     this.userSignal.set({ id, email });
   }
 }

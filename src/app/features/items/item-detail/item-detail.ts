@@ -3,17 +3,22 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ItemsService } from '../services/items.service';
 import { CategoriesService } from '../services/categories.service';
 import { GeocodeService } from '@shared/services/geocode.service';
+import { MapService } from '@shared/services/map.service';
+import { BackButton } from '@shared/components/back-button/back-button';
 import type { Item, Category } from '@shared/models';
+import { getOptimizedImageUrl } from '@shared/utils/image.utils';
 import * as L from 'leaflet';
 
 @Component({
   selector: 'app-item-detail',
+  imports: [BackButton],
   templateUrl: './item-detail.html'
 })
 export class ItemDetail implements OnInit {
   private readonly itemsService = inject(ItemsService);
   private readonly categoriesService = inject(CategoriesService);
   private readonly geocode = inject(GeocodeService);
+  private readonly mapService = inject(MapService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
 
@@ -67,25 +72,11 @@ export class ItemDetail implements OnInit {
   private initMap(lat: number, lng: number): void {
     if (this.map) return;
 
-    const el = document.getElementById('item-detail-map');
-    if (!el) return;
+    this.map = this.mapService.createMap('item-detail-map', [lat, lng]);
+    if (!this.map) return;
 
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    });
-
-    this.map = L.map(el, { center: [lat, lng], zoom: 13 });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
-
-    setTimeout(() => this.map!.invalidateSize(), 100);
-
-    this.marker = L.marker([lat, lng]).addTo(this.map);
+    this.marker = this.mapService.addMarker(this.map, [lat, lng]);
   }
 
-  protected readonly imgUrl = (url: string | null | undefined): string =>
-    url?.includes('/upload/') ? url.replace('/upload/', '/upload/f_auto,q_auto/') : url ?? '';
+  protected readonly imgUrl = getOptimizedImageUrl;
 }

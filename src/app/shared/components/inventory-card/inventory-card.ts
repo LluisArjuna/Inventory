@@ -1,5 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import type { Inventory } from '@shared/models';
+import { getOptimizedImageUrl } from '@shared/utils/image.utils';
+import { truncate } from '@shared/utils/string.utils';
 
 @Component({
   selector: 'app-inventory-card',
@@ -16,12 +18,7 @@ export class InventoryCard {
   readonly delete = output<string>();
   readonly toggleVisibility = output<string>();
 
-  protected readonly imgUrl = (url: string | null | undefined): string =>
-    url?.includes('/upload/') ? url.replace('/upload/', '/upload/f_auto,q_auto/') : url ?? '';
+  protected readonly imgUrl = getOptimizedImageUrl;
 
-  readonly truncatedDescription = computed(() => {
-    const desc = this.inventory().description;
-    if (!desc) return '';
-    return desc.length > 15 ? desc.substring(0, 15) + '...' : desc;
-  });
+  readonly truncatedDescription = computed(() => truncate(this.inventory().description));
 }

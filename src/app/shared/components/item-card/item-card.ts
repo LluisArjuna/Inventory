@@ -1,6 +1,8 @@
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import type { Item } from '@shared/models';
 import { GeocodeService } from '@shared/services/geocode.service';
+import { getOptimizedImageUrl } from '@shared/utils/image.utils';
+import { truncate } from '@shared/utils/string.utils';
 
 @Component({
   selector: 'app-item-card',
@@ -31,12 +33,7 @@ export class ItemCard {
     });
   }
 
-  protected readonly imgUrl = (url: string | null | undefined): string =>
-    url?.includes('/upload/') ? url.replace('/upload/', '/upload/f_auto,q_auto/') : url ?? '';
+  protected readonly imgUrl = getOptimizedImageUrl;
 
-  readonly truncatedDescription = computed(() => {
-    const desc = this.item().description;
-    if (!desc) return '';
-    return desc.length > 15 ? desc.substring(0, 15) + '...' : desc;
-  });
+  readonly truncatedDescription = computed(() => truncate(this.item().description));
 }
