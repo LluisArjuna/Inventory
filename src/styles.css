@@ -1,3 +1,12 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+@layer components {
+  .inventory-map-popup .leaflet-popup-content-wrapper {
+    @apply rounded-lg p-0 overflow-hidden;
+  }
+  .inventory-map-popup .leaflet-popup-content {
+    @apply m-0!;
+  }
+}
