@@ -4,12 +4,14 @@ import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
 import { CategoriesService } from '@features/items/services/categories.service';
 import { CreateItem } from '@features/items/create-item/create-item';
+import { ItemFilter } from '@features/items/item-filter/item-filter';
 import { Form, TextInput, TextArea, Checkbox } from '@shared/components/form';
+import { ItemCard } from '@shared/components/item-card/item-card';
 import type { Inventory, Item, Category } from '@shared/models';
 
 @Component({
   selector: 'app-edit-inventory',
-  imports: [CreateItem, Form, TextInput, TextArea, Checkbox],
+  imports: [CreateItem, ItemFilter, Form, TextInput, TextArea, Checkbox, ItemCard],
   templateUrl: './edit-inventory.html'
 })
 export class EditInventory implements OnInit {
@@ -28,11 +30,11 @@ export class EditInventory implements OnInit {
 
   readonly items = signal<Item[]>([]);
   readonly itemsLoading = signal(false);
+  readonly deleting = signal<Set<string>>(new Set());
+  readonly categories = signal<Category[]>([]);
   readonly categoryMap = signal<Record<string, string>>({});
   readonly showCreateDialog = signal(false);
-
-  protected readonly imgUrl = (url: string | null | undefined): string =>
-    url?.includes('/upload/') ? url.replace('/upload/', '/upload/f_auto,q_auto/') : url ?? '';
+  readonly filters = signal<{ name?: string; categoryId?: string; year?: number }>({});
 
   inventoryId = '';
 
@@ -47,6 +49,7 @@ export class EditInventory implements OnInit {
 
     this.categoriesService.getAll().subscribe({
       next: (page) => {
+        this.categories.set(page.content);
         const map: Record<string, string> = {};
         page.content.forEach((c: Category) => { map[c.id] = c.name; });
         this.categoryMap.set(map);
@@ -70,7 +73,7 @@ export class EditInventory implements OnInit {
 
   private loadItems(): void {
     this.itemsLoading.set(true);
-    this.itemsService.getAll(0, 20, { inventoryId: this.inventoryId }).subscribe({
+    this.itemsService.getAll(0, 20, { inventoryId: this.inventoryId, ...this.filters() }).subscribe({
       next: (page) => {
         this.items.set(page.content);
         this.itemsLoading.set(false);
@@ -79,6 +82,31 @@ export class EditInventory implements OnInit {
         this.itemsLoading.set(false);
       }
     });
+  }
+
+  onEditItem(id: string): void {
+    this.router.navigate(['/items', id, 'edit']);
+  }
+
+  deleteItem(id: string): void {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+
+    this.deleting.update(s => new Set(s).add(id));
+
+    this.itemsService.delete(id).subscribe({
+      next: () => {
+        this.deleting.update(s => { s.delete(id); return new Set(s); });
+        this.items.update(list => list.filter(i => i.id !== id));
+      },
+      error: () => {
+        this.deleting.update(s => { s.delete(id); return new Set(s); });
+      }
+    });
+  }
+
+  onFilterChange(f: { name?: string; categoryId?: string; year?: number }): void {
+    this.filters.set(f);
+    this.loadItems();
   }
 
   onItemCreated(): void {

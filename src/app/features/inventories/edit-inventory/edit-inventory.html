@@ -21,6 +21,11 @@
     </div>
 
     <div class="border-t pt-8">
+      <app-item-filter
+        [categories]="categories()"
+        (filterChange)="onFilterChange($event)"
+      />
+
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-gray-900">Items</h2>
         <button
@@ -38,30 +43,13 @@
       } @else {
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           @for (item of items(); track item.id) {
-            <div class="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm">
-              @if (item.photos?.[0]; as photo) {
-                <img [src]="imgUrl(photo.url)" [alt]="photo.altText ?? item.name" class="h-36 w-full object-cover" />
-              } @else {
-                <div class="h-36 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">No photo</div>
-              }
-
-              <div class="p-3 space-y-1">
-                <h3 class="font-semibold text-gray-900 truncate">{{ item.name }}</h3>
-
-                @if (item.description) {
-                  <p class="text-sm text-gray-600 truncate">{{ item.description }}</p>
-                }
-
-                <div class="flex flex-wrap gap-1.5 text-xs text-gray-500">
-                  @if (categoryMap()[item.categoryId]; as catName) {
-                    <span class="bg-gray-100 px-2 py-0.5 rounded">{{ catName }}</span>
-                  }
-                  @if (item.coordX != null && item.coordY != null) {
-                    <span class="bg-gray-100 px-2 py-0.5 rounded">{{ item.coordX.toFixed(4) }}, {{ item.coordY.toFixed(4) }}</span>
-                  }
-                </div>
-              </div>
-            </div>
+            <app-item-card
+              [item]="item"
+              [categoryName]="categoryMap()[item.categoryId]"
+              [showActions]="true"
+              (edit)="onEditItem($event)"
+              (delete)="deleteItem($event)"
+            />
           }
         </div>
       }
