@@ -4,6 +4,7 @@ import { ItemsService } from '../services/items.service';
 import { CategoriesService } from '../services/categories.service';
 import { GeocodeService } from '@shared/services/geocode.service';
 import { MapService } from '@shared/services/map.service';
+import { ToastService } from '@shared/services/toast.service';
 import { BackButton } from '@shared/components/back-button/back-button';
 import type { Item, Category } from '@shared/models';
 import { getOptimizedImageUrl } from '@shared/utils/image.utils';
@@ -19,6 +20,7 @@ export class ItemDetail implements OnInit {
   private readonly categoriesService = inject(CategoriesService);
   private readonly geocode = inject(GeocodeService);
   private readonly mapService = inject(MapService);
+  private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
 
@@ -48,12 +50,14 @@ export class ItemDetail implements OnInit {
           next: (page) => {
             const cat = page.content.find(c => c.id === item.categoryId);
             if (cat) this.categoryName.set(cat.name);
-          }
+          },
+          error: () => this.toast.error('Failed to load categories')
         });
 
         if (item.coordX != null && item.coordY != null) {
-          this.geocode.reverse(item.coordX, item.coordY).subscribe(result => {
-            this.locationName.set(result.locationName);
+          this.geocode.reverse(item.coordX, item.coordY).subscribe({
+            next: result => this.locationName.set(result.locationName),
+            error: () => this.locationName.set('Location unavailable')
           });
         }
 

@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, type OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
 import { CategoriesService } from '@features/items/services/categories.service';
@@ -12,17 +13,19 @@ import type { Inventory, Item, Category } from '@shared/models';
 
 @Component({
   selector: 'app-inventory-detail',
-  imports: [ItemCard, Pagination, ItemFilter, BackButton],
+  imports: [ItemCard, Pagination, ItemFilter, BackButton, RouterLink],
   templateUrl: './inventory-detail.html'
 })
 export class InventoryDetail implements OnInit {
   private readonly inventoriesService = inject(InventoriesService);
   private readonly itemsService = inject(ItemsService);
   private readonly categoriesService = inject(CategoriesService);
+  protected readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
 
   readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
   readonly inventory = signal<Inventory | null>(null);
   readonly items = signal<Item[]>([]);
   readonly categories = signal<Category[]>([]);
@@ -54,7 +57,14 @@ export class InventoryDetail implements OnInit {
         this.inventory.set(inventory);
         this.loadItems();
       },
-      error: () => this.router.navigate(['/'])
+      error: () => {
+        this.loading.set(false);
+        this.error.set(
+          this.auth.currentUser()
+            ? 'Failed to load inventory'
+            : 'Sign in to view this inventory'
+        );
+      }
     });
   }
 

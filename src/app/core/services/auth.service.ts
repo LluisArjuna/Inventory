@@ -88,7 +88,7 @@ export class AuthService {
     localStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
     localStorage.removeItem(STORAGE_KEYS.USER_ID);
     this.userSignal.set(null);
-    await this.router.navigate(['/login']);
+    await this.router.navigate(['/']);
   }
 
   getToken(): string | null {

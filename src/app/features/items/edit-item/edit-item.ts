@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, type OnInit, afterNextRender } from '@angular/core';
+import { Component, inject, signal, computed, type OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ItemsService } from '../services/items.service';
@@ -9,6 +9,7 @@ import { GeocodeService } from '@shared/services/geocode.service';
 import { Autocomplete } from '@shared/components/autocomplete/autocomplete';
 import { Form, FormField, TextInput, TextArea } from '@shared/components/form';
 import { MapService } from '@shared/services/map.service';
+import { ToastService } from '@shared/services/toast.service';
 import type { Item, Category, Photo } from '@shared/models';
 import * as L from 'leaflet';
 
@@ -24,6 +25,7 @@ export class EditItem implements OnInit {
   private readonly photoService = inject(PhotoService);
   private readonly geocode = inject(GeocodeService);
   private readonly mapService = inject(MapService);
+  private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -62,10 +64,6 @@ export class EditItem implements OnInit {
     !this.saving()
   );
 
-  constructor() {
-    afterNextRender(() => this.initMap());
-  }
-
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -76,7 +74,8 @@ export class EditItem implements OnInit {
     this.itemId = id;
 
     this.categoriesService.getAll().subscribe({
-      next: (page) => this.categories.set(page.content)
+      next: (page) => this.categories.set(page.content),
+      error: () => this.toast.error('Failed to load categories')
     });
 
     this.itemsService.getById(id).subscribe({
@@ -101,14 +100,16 @@ export class EditItem implements OnInit {
     }
 
     this.loading.set(false);
-    setTimeout(() => this.initMap(), 0);
 
     const cat = this.categories().find(c => c.id === item.categoryId);
     if (cat) this.selectedCategory.set(cat);
 
-    if (this.originalLat !== 0 || this.originalLng !== 0) {
-      setTimeout(() => this.placeMarker(this.originalLat, this.originalLng), 200);
-    }
+    setTimeout(() => {
+      this.initMap();
+      if (this.originalLat !== 0 || this.originalLng !== 0) {
+        this.placeMarker(this.originalLat, this.originalLng);
+      }
+    }, 0);
   }
 
   private initMap(): void {
@@ -119,13 +120,14 @@ export class EditItem implements OnInit {
 
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      this.mapService.removeMarker(this.marker()!);
+      this.mapService.removeMarker(this.marker());
       const newMarker = this.mapService.addMarker(this.map!, [lat, lng]);
       this.marker.set(newMarker);
       this.coordText.set(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       this.coordLocation.set('');
-      this.geocode.reverse(lat, lng).subscribe(result => {
-        this.coordLocation.set(result.locationName);
+      this.geocode.reverse(lat, lng).subscribe({
+        next: result => this.coordLocation.set(result.locationName),
+        error: () => this.coordLocation.set('Location unavailable')
       });
       this.coordChanged = true;
     });
@@ -133,13 +135,14 @@ export class EditItem implements OnInit {
 
   private placeMarker(lat: number, lng: number): void {
     if (!this.map) return;
-    this.mapService.removeMarker(this.marker()!);
+    this.mapService.removeMarker(this.marker());
     const newMarker = this.mapService.addMarker(this.map!, [lat, lng]);
     this.marker.set(newMarker);
     this.coordText.set(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
     this.coordLocation.set('');
-    this.geocode.reverse(lat, lng).subscribe(result => {
-      this.coordLocation.set(result.locationName);
+    this.geocode.reverse(lat, lng).subscribe({
+      next: result => this.coordLocation.set(result.locationName),
+      error: () => this.coordLocation.set('Location unavailable')
     });
     this.map.setView([lat, lng], 13);
   }

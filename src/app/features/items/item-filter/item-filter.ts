@@ -1,5 +1,7 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Subject, debounceTime } from 'rxjs';
 import type { Category } from '@shared/models';
 
 @Component({
@@ -8,6 +10,9 @@ import type { Category } from '@shared/models';
   templateUrl: './item-filter.html'
 })
 export class ItemFilter {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly nameChange = new Subject<string>();
+
   readonly categories = input<Category[]>([]);
 
   readonly filterChange = output<{ name?: string; categoryId?: string; year?: number }>();
@@ -15,6 +20,16 @@ export class ItemFilter {
   readonly filterName = signal('');
   readonly filterCategoryId = signal('');
   readonly filterYear = signal<number | null>(null);
+
+  constructor() {
+    this.nameChange.pipe(
+      debounceTime(300),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(name => {
+      this.filterName.set(name);
+      this.emitFilters();
+    });
+  }
 
   private emitFilters(): void {
     this.filterChange.emit({
@@ -25,8 +40,7 @@ export class ItemFilter {
   }
 
   onNameChange(value: string): void {
-    this.filterName.set(value);
-    this.emitFilters();
+    this.nameChange.next(value);
   }
 
   onCategoryChange(value: string): void {
@@ -40,7 +54,7 @@ export class ItemFilter {
   }
 
   clearFilters(): void {
-    this.filterName.set('');
+    this.nameChange.next('');
     this.filterCategoryId.set('');
     this.filterYear.set(null);
     this.emitFilters();
