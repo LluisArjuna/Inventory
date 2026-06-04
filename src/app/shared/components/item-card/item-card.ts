@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import type { Item } from '@shared/models';
 import { GeocodeService } from '@shared/services/geocode.service';
 import { getOptimizedImageUrl } from '@shared/utils/image.utils';
@@ -22,13 +23,14 @@ export class ItemCard {
   protected readonly locationName = signal('');
 
   constructor() {
-    effect(() => {
+    effect((onCleanup) => {
       const item = this.item();
       this.locationName.set('');
       if (item.coordX != null && item.coordY != null) {
-        this.geocode.reverse(item.coordX, item.coordY).subscribe(result => {
+        const sub = this.geocode.reverse(item.coordX, item.coordY).subscribe(result => {
           this.locationName.set(result.locationName);
         });
+        onCleanup(() => sub.unsubscribe());
       }
     });
   }
