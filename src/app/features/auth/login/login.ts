@@ -2,10 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
+import { GoogleSignIn } from '@shared/components/google-sign-in/google-sign-in';
+import { OrDivider } from '@shared/components/or-divider/or-divider';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, GoogleSignIn, OrDivider],
   templateUrl: './login.html'
 })
 export class Login {

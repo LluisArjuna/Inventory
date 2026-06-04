@@ -3,7 +3,7 @@
     <p class="text-gray-500">Loading inventory...</p>
   } @else {
     @if (inventory(); as inv) {
-      <button (click)="router.navigate(['/'])" class="text-sm text-blue-600 hover:underline mb-4 inline-block">&larr; Back to inventories</button>
+      <app-back-button [route]="['/']" label="Back to inventories" />
 
       <div class="mb-8">
         <div class="flex items-center gap-3 mb-2">

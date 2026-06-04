@@ -1,10 +1,12 @@
 import { Component, computed, inject, signal, type OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables } from 'chart.js';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
 import { CategoriesService } from '@features/items/services/categories.service';
+import { BackButton } from '@shared/components/back-button/back-button';
 import type { Inventory, Item, Category } from '@shared/models';
 import type { ChartConfiguration, ChartData } from 'chart.js';
 
@@ -12,7 +14,7 @@ Chart.register(...registerables);
 
 @Component({
   selector: 'app-inventory-stats',
-  imports: [BaseChartDirective],
+  imports: [BaseChartDirective, BackButton],
   templateUrl: './inventory-stats.html'
 })
 export class InventoryStats implements OnInit {
@@ -95,16 +97,14 @@ export class InventoryStats implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.router.navigate(['/']); return; }
 
-    this.categoriesService.getAll().subscribe({
-      next: (catPage) => {
+    forkJoin({
+      catPage: this.categoriesService.getAll(),
+      inventory: this.inventoriesService.getById(id)
+    }).subscribe({
+      next: ({ catPage, inventory }) => {
         this.categories.set(catPage.content);
-        this.inventoriesService.getById(id).subscribe({
-          next: (inv) => {
-            this.inventory.set(inv);
-            this.loadItems(inv.id);
-          },
-          error: () => this.router.navigate(['/'])
-        });
+        this.inventory.set(inventory);
+        this.loadItems(inventory.id);
       },
       error: () => this.router.navigate(['/'])
     });
