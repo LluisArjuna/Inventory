@@ -9,11 +9,12 @@ import { ItemFilter } from '@features/items/item-filter/item-filter';
 import { ItemCard } from '@shared/components/item-card/item-card';
 import { Pagination } from '@shared/components/pagination/pagination';
 import { BackButton } from '@shared/components/back-button/back-button';
-import type { Inventory, Item, Category } from '@shared/models';
+import { LendingCalendar } from '@shared/components/lending-calendar/lending-calendar';
+import type { Inventory, Item, Category, AvailabilityDateRange } from '@shared/models';
 
 @Component({
   selector: 'app-inventory-detail',
-  imports: [ItemCard, Pagination, ItemFilter, BackButton, RouterLink],
+  imports: [ItemCard, Pagination, ItemFilter, BackButton, RouterLink, LendingCalendar],
   templateUrl: './inventory-detail.html'
 })
 export class InventoryDetail implements OnInit {
@@ -32,6 +33,7 @@ export class InventoryDetail implements OnInit {
   readonly currentPage = signal(0);
   readonly totalPages = signal(0);
   readonly filters = signal<{ name?: string; categoryId?: string; year?: number }>({});
+  readonly availabilities = signal<AvailabilityDateRange[]>([]);
 
   readonly categoryMap = computed(() => {
     const map = new Map<string, string>();
@@ -50,11 +52,13 @@ export class InventoryDetail implements OnInit {
 
     forkJoin({
       categories: this.categoriesService.getAll(),
-      inventory: this.inventoriesService.getById(id)
+      inventory: this.inventoriesService.getById(id),
+      availabilities: this.inventoriesService.getAvailabilities(id)
     }).subscribe({
-      next: ({ categories, inventory }) => {
+      next: ({ categories, inventory, availabilities }) => {
         this.categories.set(categories.content);
         this.inventory.set(inventory);
+        this.availabilities.set(availabilities);
         this.loadItems();
       },
       error: () => {

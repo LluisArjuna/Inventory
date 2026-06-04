@@ -8,11 +8,12 @@ import { ItemFilter } from '@features/items/item-filter/item-filter';
 import { Form, TextInput, TextArea, Checkbox } from '@shared/components/form';
 import { ItemCard } from '@shared/components/item-card/item-card';
 import { Modal } from '@shared/components/modal/modal';
-import type { Inventory, Item, Category } from '@shared/models';
+import { LendingCalendar } from '@shared/components/lending-calendar/lending-calendar';
+import type { Inventory, Item, Category, AvailabilityDateRange } from '@shared/models';
 
 @Component({
   selector: 'app-edit-inventory',
-  imports: [CreateItem, ItemFilter, Form, TextInput, TextArea, Checkbox, ItemCard, Modal],
+  imports: [CreateItem, ItemFilter, Form, TextInput, TextArea, Checkbox, ItemCard, Modal, LendingCalendar],
   templateUrl: './edit-inventory.html'
 })
 export class EditInventory implements OnInit {
@@ -38,6 +39,8 @@ export class EditInventory implements OnInit {
   readonly filters = signal<{ name?: string; categoryId?: string; year?: number }>({});
   readonly showDeleteConfirm = signal(false);
   readonly pendingDeleteId = signal<string | null>(null);
+  readonly availabilities = signal<AvailabilityDateRange[]>([]);
+  readonly savingAvailability = signal(false);
 
   inventoryId = '';
 
@@ -71,6 +74,10 @@ export class EditInventory implements OnInit {
       error: () => {
         this.loading.set(false);
       }
+    });
+
+    this.inventoriesService.getAvailabilities(id).subscribe({
+      next: (avail) => this.availabilities.set(avail)
     });
   }
 
@@ -142,11 +149,29 @@ export class EditInventory implements OnInit {
       isPublic: this.isPublic()
     }).subscribe({
       next: () => {
-        this.router.navigate(['/my-inventories']);
+        this.saveAvailabilities(inv.id);
       },
       error: () => {
         this.saving.set(false);
       }
     });
+  }
+
+  private saveAvailabilities(inventoryId: string): void {
+    this.savingAvailability.set(true);
+
+    this.inventoriesService.setAvailabilities(inventoryId, this.availabilities()).subscribe({
+      next: () => {
+        this.router.navigate(['/my-inventories']);
+      },
+      error: () => {
+        this.saving.set(false);
+        this.savingAvailability.set(false);
+      }
+    });
+  }
+
+  onAvailabilitiesChange(ranges: AvailabilityDateRange[]): void {
+    this.availabilities.set(ranges);
   }
 }
