@@ -9,6 +9,7 @@ import { Autocomplete } from '@shared/components/autocomplete/autocomplete';
 import { Form, FormField, TextInput, TextArea } from '@shared/components/form';
 import { Modal } from '@shared/components/modal/modal';
 import { MapService } from '@shared/services/map.service';
+import { ToastService } from '@shared/services/toast.service';
 import type { Category } from '@shared/models';
 import * as L from 'leaflet';
 
@@ -23,6 +24,7 @@ export class CreateItem implements OnInit {
   private readonly itemsService = inject(ItemsService);
   private readonly photoService = inject(PhotoService);
   private readonly mapService = inject(MapService);
+  private readonly toast = inject(ToastService);
 
   readonly inventoryId = input.required<string>();
   readonly onClose = output<void>();
@@ -54,7 +56,8 @@ export class CreateItem implements OnInit {
 
   ngOnInit(): void {
     this.categoriesService.getAll().subscribe({
-      next: (page) => this.categories.set(page.content)
+      next: (page) => this.categories.set(page.content),
+      error: () => this.toast.error('Failed to load categories')
     });
 
     setTimeout(() => this.initMap(), 0);
@@ -68,7 +71,7 @@ export class CreateItem implements OnInit {
 
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      this.mapService.removeMarker(this.marker()!);
+      this.mapService.removeMarker(this.marker());
       const newMarker = this.mapService.addMarker(this.map!, [lat, lng]);
       this.marker.set(newMarker);
       this.coordText.set(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
