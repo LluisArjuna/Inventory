@@ -6,13 +6,14 @@ import { ToastService } from '@shared/services/toast.service';
 const SKIP_PATHS = ['/auth/firebase'];
 
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {
+  const toast = inject(ToastService);
+
   if (SKIP_PATHS.some(p => request.url.includes(p))) {
     return next(request);
   }
 
   return next(request).pipe(
     catchError((err) => {
-      const toast = inject(ToastService);
 
       if (err.error?.message) {
         toast.error(err.error.message);
