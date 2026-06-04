@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
 import { Form, TextInput, TextArea, Checkbox } from '@shared/components/form';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
   selector: 'app-create-inventory',
@@ -13,6 +14,7 @@ export class CreateInventory {
   private readonly service = inject(InventoriesService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   readonly onClose = output<void>();
 
@@ -39,6 +41,7 @@ export class CreateInventory {
       },
       error: () => {
         this.creating.set(false);
+        this.toast.error('Failed to create inventory');
       }
     });
   }
