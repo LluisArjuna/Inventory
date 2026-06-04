@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { ApiService } from '@core/services/api.service';
 import { createCrud } from '@core/services/base-crud.service';
-import type { Inventory, CreateInventoryRequest, Page } from '@shared/models';
+import type { Inventory, CreateInventoryRequest, Page, AvailabilityDateRange } from '@shared/models';
 
 type UpdateInventory = Partial<Inventory>;
 
@@ -41,5 +41,13 @@ export class InventoriesService {
 
   toggleVisibility(id: string, isPublic: boolean): Observable<Inventory> {
     return this.api.update<Inventory>('/inventories', id, { isPublic } as unknown as Record<string, unknown>);
+  }
+
+  getAvailabilities(inventoryId: string): Observable<AvailabilityDateRange[]> {
+    return this.api.get<AvailabilityDateRange[]>(`/inventories/${inventoryId}/availabilities`);
+  }
+
+  setAvailabilities(inventoryId: string, availabilities: AvailabilityDateRange[]): Observable<AvailabilityDateRange[]> {
+    return this.api.put<AvailabilityDateRange[]>(`/inventories/${inventoryId}/availabilities`, { availabilities } as unknown as Record<string, unknown>);
   }
 }

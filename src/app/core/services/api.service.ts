@@ -28,6 +28,10 @@ export class ApiService {
     return this.http.put<T>(`${this.baseUrl}${path}/${id}`, body);
   }
 
+  put<T>(path: string, body: Record<string, unknown>): Observable<T> {
+    return this.http.put<T>(`${this.baseUrl}${path}`, body);
+  }
+
   delete(path: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}${path}/${id}`);
   }
