@@ -1,0 +1,71 @@
+<div class="max-w-2xl mx-auto p-6">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Edit Item</h1>
+
+  @if (loading()) {
+    <p class="text-gray-500">Loading...</p>
+  } @else {
+    <app-form
+      [disabled]="saving()"
+      [valid]="canSave()"
+      [loading]="saving()"
+      submitText="Save"
+      loadingText="Saving..."
+      (cancel)="cancel()"
+      (submit)="save()"
+    >
+      <app-text-input label="Name" [(value)]="name" [required]="true" placeholder="Item name" />
+      <app-text-area label="Description" [(value)]="description" placeholder="Optional description" />
+      <app-form-field label="Year" [required]="true">
+        <input
+          type="number"
+          [ngModel]="year()"
+          (ngModelChange)="year.set($event)"
+        class="input-field"
+        placeholder="e.g. 2024"
+        />
+      </app-form-field>
+
+      <app-form-field label="Category" [required]="true">
+        <app-autocomplete
+          [items]="categories()"
+          [displayFn]="categoryDisplay"
+          placeholder="Search category..."
+          (selectionChange)="selectedCategory.set($event)"
+        />
+      </app-form-field>
+
+      <app-form-field label="Location">
+        <div id="edit-item-map" class="h-48 overflow-hidden rounded border border-gray-300"></div>
+        @if (coordText()) {
+          <p class="text-xs text-gray-500 mt-1">{{ coordLocation() || 'Locating...' }} ({{ coordText() }})</p>
+        }
+      </app-form-field>
+
+      <app-form-field label="Photos">
+        @if (photos().length > 0) {
+          <div class="flex flex-wrap gap-2 mb-3">
+            @for (photo of photos(); track photo.id) {
+              <div class="relative w-24 h-24 rounded border border-gray-200 overflow-hidden group">
+                <img [src]="photo.url" [alt]="photo.altText ?? ''" class="w-full h-full object-cover" />
+                <button
+                  (click)="deletePhoto(photo.id)"
+                  [disabled]="deletingPhotos().has(photo.id)"
+                  class="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                >
+                  &times;
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <input
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        />
+      </app-form-field>
+    </app-form>
+  }
+</div>

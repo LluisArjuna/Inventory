@@ -1,5 +1,6 @@
 <app-navbar
   (onCreateInventory)="showCreateDialog.set(true)"
+  (onSearch)="onSearch($event)"
 />
 @if (showCreateDialog()) {
     <div class="fixed inset-0 bg-black/30 z-40 p-3">

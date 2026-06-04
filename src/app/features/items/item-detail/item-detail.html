@@ -1,0 +1,58 @@
+<div class="max-w-4xl mx-auto p-6">
+  @if (loading()) {
+    <p class="text-gray-500">Loading item...</p>
+  } @else if (item(); as it) {
+    <app-back-button [route]="['/inventories', it.inventoryId]" label="Back to inventory" />
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div>
+        @if (it.photos && it.photos.length > 0) {
+          <div class="mb-4">
+            <img [src]="imgUrl(selectedPhoto())" [alt]="it.name" class="w-full h-64 object-cover rounded-lg" />
+            @if (it.photos.length > 1) {
+              <div class="flex gap-2 mt-2">
+                @for (photo of it.photos; track photo.id) {
+                  <img
+                    [src]="imgUrl(photo.url)"
+                    [alt]="photo.altText ?? it.name"
+                    (click)="selectedPhoto.set(photo.url)"
+                    class="w-16 h-16 object-cover rounded cursor-pointer border-2 transition-colors"
+                    [class.border-blue-500]="selectedPhoto() === photo.url"
+                    [class.border-gray-200]="selectedPhoto() !== photo.url"
+                  />
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="h-64 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 mb-4">No photo</div>
+        }
+
+        @if (it.coordX != null && it.coordY != null) {
+          <div id="item-detail-map" class="h-64 rounded-lg border border-gray-300 overflow-hidden"></div>
+        }
+      </div>
+
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-2xl font-bold text-gray-900">{{ it.name }}</h1>
+          <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-sm">{{ it.year }}</span>
+        </div>
+
+        @if (categoryName()) {
+          <span class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-sm mb-3">{{ categoryName() }}</span>
+        }
+
+        @if (it.description) {
+          <p class="text-gray-600 mt-4">{{ it.description }}</p>
+        }
+
+        @if (it.coordX != null && it.coordY != null) {
+          <p class="text-sm text-gray-500 mt-4">
+            Location: {{ locationName() || 'Locating...' }}
+          </p>
+        }
+      </div>
+    </div>
+  }
+</div>

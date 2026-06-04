@@ -7,6 +7,7 @@ import { PhotoService } from '../services/photo.service';
 import { Autocomplete } from '@shared/components/autocomplete/autocomplete';
 import { Form, FormField, TextInput, TextArea } from '@shared/components/form';
 import { Modal } from '@shared/components/modal/modal';
+import { MapService } from '@shared/services/map.service';
 import type { Category } from '@shared/models';
 import * as L from 'leaflet';
 
@@ -20,6 +21,7 @@ export class CreateItem {
   private readonly coordinatesService = inject(CoordinatesService);
   private readonly itemsService = inject(ItemsService);
   private readonly photoService = inject(PhotoService);
+  private readonly mapService = inject(MapService);
 
   readonly inventoryId = input.required<string>();
   readonly onClose = output<void>();
@@ -53,27 +55,15 @@ export class CreateItem {
   }
 
   private initMap(): void {
-    const el = document.getElementById('map');
-    if (!el || this.map) return;
+    if (this.map) return;
 
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    });
-
-    this.map = L.map(el, { center: [41.3874, 2.1686], zoom: 13 });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
-
-    setTimeout(() => this.map!.invalidateSize(), 100);
+    this.map = this.mapService.createMap('map', [41.3874, 2.1686]);
+    if (!this.map) return;
 
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      this.marker()?.remove();
-      const newMarker = L.marker([lat, lng]).addTo(this.map!);
+      this.mapService.removeMarker(this.marker()!);
+      const newMarker = this.mapService.addMarker(this.map!, [lat, lng]);
       this.marker.set(newMarker);
       this.coordText.set(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
     });

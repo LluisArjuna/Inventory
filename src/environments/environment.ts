@@ -9,14 +9,5 @@ export const environment = {
     messagingSenderId: '331662419732',
     appId: '1:331662419732:web:5c9932da638b19dbd3c401',
     measurementId: 'G-X345ST877F'
-  }/*
-  firebase: {
-    apiKey: 'FIREBASE_API_KEY',
-    authDomain: 'FIREBASE_AUTH_DOMAIN',
-    projectId: 'FIREBASE_PROJECT_ID',
-    storageBucket: 'FIREBASE_STORAGE_BUCKET',
-    messagingSenderId: 'FIREBASE_MESSAGING_SENDER_ID',
-    appId: 'FIREBASE_APP_ID',
-    measurementId: 'FIREBASE_MEASUREMENT_ID'
-  }*/
+  }
 };

@@ -1,0 +1,22 @@
+<div class="max-w-6xl mx-auto p-6">
+  @if (loading()) {
+    <p class="text-gray-500">Loading map...</p>
+  } @else if (inventory(); as inv) {
+    <app-back-button [route]="['/inventories', inv.id]" label="Back to inventory" />
+
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">{{ inv.name }}</h1>
+      <span class="text-sm text-gray-500">
+        {{ geocodedItems().length }} of {{ items().length }} items on map
+      </span>
+    </div>
+
+    @if (geocodedItems().length === 0) {
+      <div class="bg-gray-50 rounded-lg border border-gray-200 p-12 text-center text-gray-500">
+        No items in this inventory have location coordinates.
+      </div>
+    } @else {
+      <div id="inventory-map" class="h-600px rounded-lg border border-gray-300 overflow-hidden"></div>
+    }
+  }
+</div>

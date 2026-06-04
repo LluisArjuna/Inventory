@@ -6,10 +6,11 @@ import { InventoryCard } from '@shared/components/inventory-card/inventory-card'
 import type { Inventory, Page } from '@shared/models';
 import { SkeletonCard } from "@shared/components/skeleton-card/skeleton-card";
 import { Pagination } from '@shared/components/pagination/pagination';
+import { Modal } from '@shared/components/modal/modal';
 
 @Component({
   selector: 'app-my-inventories',
-  imports: [InventoryCard, SkeletonCard, Pagination],
+  imports: [InventoryCard, SkeletonCard, Pagination, Modal],
   templateUrl: './my-inventories.html'
 })
 export class MyInventories implements OnInit {
@@ -25,6 +26,8 @@ export class MyInventories implements OnInit {
 
   readonly isDeleting = signal<Set<string>>(new Set());
   readonly toggling = signal<Set<string>>(new Set());
+  readonly showDeleteConfirm = signal(false);
+  readonly pendingDeleteId = signal<string | null>(null);
 
   readonly isEmpty = computed(() => !this.loading() && this.inventories().length === 0);
 
@@ -76,7 +79,16 @@ export class MyInventories implements OnInit {
   }
 
   onDelete(id: string): void {
-    if (!confirm('Are you sure you want to delete this inventory?')) return;
+    this.pendingDeleteId.set(id);
+    this.showDeleteConfirm.set(true);
+  }
+
+  confirmDelete(): void {
+    const id = this.pendingDeleteId();
+    if (!id) return;
+
+    this.showDeleteConfirm.set(false);
+    this.pendingDeleteId.set(null);
 
     this.isDeleting.update(s => new Set(s).add(id));
 

@@ -4,6 +4,7 @@ export interface Inventory {
   description?: string;
   isPublic: boolean;
   userId: string;
+  firstPhotoUrl?: string;
 }
 export interface CreateInventoryRequest {
   name: string;
