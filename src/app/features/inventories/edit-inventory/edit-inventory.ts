@@ -7,11 +7,12 @@ import { CreateItem } from '@features/items/create-item/create-item';
 import { ItemFilter } from '@features/items/item-filter/item-filter';
 import { Form, TextInput, TextArea, Checkbox } from '@shared/components/form';
 import { ItemCard } from '@shared/components/item-card/item-card';
+import { Modal } from '@shared/components/modal/modal';
 import type { Inventory, Item, Category } from '@shared/models';
 
 @Component({
   selector: 'app-edit-inventory',
-  imports: [CreateItem, ItemFilter, Form, TextInput, TextArea, Checkbox, ItemCard],
+  imports: [CreateItem, ItemFilter, Form, TextInput, TextArea, Checkbox, ItemCard, Modal],
   templateUrl: './edit-inventory.html'
 })
 export class EditInventory implements OnInit {
@@ -35,6 +36,8 @@ export class EditInventory implements OnInit {
   readonly categoryMap = signal<Record<string, string>>({});
   readonly showCreateDialog = signal(false);
   readonly filters = signal<{ name?: string; categoryId?: string; year?: number }>({});
+  readonly showDeleteConfirm = signal(false);
+  readonly pendingDeleteId = signal<string | null>(null);
 
   inventoryId = '';
 
@@ -89,7 +92,16 @@ export class EditInventory implements OnInit {
   }
 
   deleteItem(id: string): void {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+    this.pendingDeleteId.set(id);
+    this.showDeleteConfirm.set(true);
+  }
+
+  confirmDelete(): void {
+    const id = this.pendingDeleteId();
+    if (!id) return;
+
+    this.showDeleteConfirm.set(false);
+    this.pendingDeleteId.set(null);
 
     this.deleting.update(s => new Set(s).add(id));
 

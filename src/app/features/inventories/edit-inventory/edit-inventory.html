@@ -64,3 +64,16 @@
     (onCreated)="onItemCreated()"
   />
 }
+
+<app-modal
+  [open]="showDeleteConfirm()"
+  [showConfirm]="true"
+  title="Delete item"
+  confirmLabel="Delete"
+  cancelLabel="Cancel"
+  [confirmVariant]="'danger'"
+  (onClose)="showDeleteConfirm.set(false)"
+  (onConfirm)="confirmDelete()"
+>
+  Are you sure you want to delete this item? This action cannot be undone.
+</app-modal>
