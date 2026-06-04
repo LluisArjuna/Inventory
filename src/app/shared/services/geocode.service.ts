@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, timer } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
+import { ApiService } from '@core/services/api.service';
 
 interface NominatimAddress {
   address: {
@@ -33,7 +33,7 @@ export interface BoundingBox {
 
 @Injectable({ providedIn: 'root' })
 export class GeocodeService {
-  private readonly http = inject(HttpClient);
+  private readonly api = inject(ApiService);
   private readonly cache = new Map<string, GeocodeResult>();
   private lastCallTime = 0;
 
@@ -48,10 +48,7 @@ export class GeocodeService {
 
     return timer(delay).pipe(
       switchMap(() =>
-        this.http.get<NominatimSearchResult[]>('https://nominatim.openstreetmap.org/search', {
-          params: { q: country, format: 'json', limit: '1', featuretype: 'country' },
-          headers: { 'User-Agent': 'InventoryApp/1.0' }
-        }).pipe(
+        this.api.get<NominatimSearchResult[]>('/geocode/search', { q: country }).pipe(
           tap(() => { this.lastCallTime = Date.now(); }),
           map(results => {
             if (results.length === 0) return null;
@@ -80,10 +77,7 @@ export class GeocodeService {
 
     return timer(delay).pipe(
       switchMap(() =>
-        this.http.get<NominatimAddress>('https://nominatim.openstreetmap.org/reverse', {
-          params: { lat: lat.toString(), lon: lng.toString(), format: 'json' },
-          headers: { 'User-Agent': 'InventoryApp/1.0' }
-        }).pipe(
+        this.api.get<NominatimAddress>('/geocode/reverse', { lat, lon: lng }).pipe(
           tap(() => { this.lastCallTime = Date.now(); }),
           map(resp => {
             const addr = resp.address;
