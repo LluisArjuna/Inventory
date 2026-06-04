@@ -1,9 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '@core/services/auth.service';
 import { GoogleSignIn } from '@shared/components/google-sign-in/google-sign-in';
 import { OrDivider } from '@shared/components/or-divider/or-divider';
+import { getAuthErrorMessage } from '@shared/utils/auth-errors.utils';
 
 @Component({
   selector: 'app-register',
@@ -39,7 +40,7 @@ export class Register {
       await this.auth.registerWithEmail(this.email(), this.password());
       await this.router.navigate(['/']);
     } catch (err) {
-      this.error.set(this.getErrorMessage(err));
+      this.error.set(getAuthErrorMessage(err));
     } finally {
       this.submitting.set(false);
     }
@@ -53,25 +54,9 @@ export class Register {
       await this.auth.loginWithGoogle();
       await this.router.navigate(['/']);
     } catch (err) {
-      this.error.set(this.getErrorMessage(err));
+      this.error.set(getAuthErrorMessage(err));
     } finally {
       this.submitting.set(false);
-    }
-  }
-
-  private getErrorMessage(err: unknown): string {
-    const code = (err as { code?: string })?.code;
-    switch (code) {
-      case 'auth/email-already-in-use':
-        return 'Email already registered';
-      case 'auth/invalid-email':
-        return 'Invalid email format';
-      case 'auth/weak-password':
-        return 'Password too weak';
-      case 'auth/popup-closed-by-user':
-        return 'Google sign-in was cancelled';
-      default:
-        return 'An unexpected error occurred';
     }
   }
 }
