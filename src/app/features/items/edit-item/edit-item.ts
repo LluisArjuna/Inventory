@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, type OnInit, afterNextRender } from '@angular/core';
+import { Component, inject, signal, computed, type OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ItemsService } from '../services/items.service';
@@ -62,10 +62,6 @@ export class EditItem implements OnInit {
     !this.saving()
   );
 
-  constructor() {
-    afterNextRender(() => this.initMap());
-  }
-
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -101,14 +97,16 @@ export class EditItem implements OnInit {
     }
 
     this.loading.set(false);
-    setTimeout(() => this.initMap(), 0);
 
     const cat = this.categories().find(c => c.id === item.categoryId);
     if (cat) this.selectedCategory.set(cat);
 
-    if (this.originalLat !== 0 || this.originalLng !== 0) {
-      setTimeout(() => this.placeMarker(this.originalLat, this.originalLng), 200);
-    }
+    setTimeout(() => {
+      this.initMap();
+      if (this.originalLat !== 0 || this.originalLng !== 0) {
+        this.placeMarker(this.originalLat, this.originalLng);
+      }
+    }, 0);
   }
 
   private initMap(): void {

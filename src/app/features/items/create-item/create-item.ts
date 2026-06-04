@@ -1,5 +1,6 @@
-import { Component, inject, input, output, signal, effect, afterNextRender } from '@angular/core';
+import { Component, computed, inject, input, output, signal, type OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { concatMap, of } from 'rxjs';
 import { CategoriesService } from '../services/categories.service';
 import { CoordinatesService } from '../services/coordinates.service';
 import { ItemsService } from '../services/items.service';
@@ -16,7 +17,7 @@ import * as L from 'leaflet';
   imports: [FormsModule, Autocomplete, Form, FormField, TextInput, TextArea, Modal],
   templateUrl: './create-item.html'
 })
-export class CreateItem {
+export class CreateItem implements OnInit {
   private readonly categoriesService = inject(CategoriesService);
   private readonly coordinatesService = inject(CoordinatesService);
   private readonly itemsService = inject(ItemsService);
@@ -42,16 +43,21 @@ export class CreateItem {
 
   protected readonly categoryDisplay = (c: Category) => c.name;
 
-  constructor() {
-    afterNextRender(() => this.initMap());
+  readonly canCreate = computed(() =>
+    this.name().trim().length > 0 &&
+    this.year() !== null &&
+    this.year()! > 0 &&
+    this.selectedCategory() !== null &&
+    this.marker() !== null &&
+    !this.creating()
+  );
 
-    effect(() => {
-      if (this.inventoryId()) {
-        this.categoriesService.getAll().subscribe({
-          next: (page) => this.categories.set(page.content)
-        });
-      }
+  ngOnInit(): void {
+    this.categoriesService.getAll().subscribe({
+      next: (page) => this.categories.set(page.content)
     });
+
+    setTimeout(() => this.initMap(), 0);
   }
 
   private initMap(): void {
@@ -74,56 +80,29 @@ export class CreateItem {
     this.selectedFile.set(input.files?.[0] ?? null);
   }
 
-  get canCreate(): boolean {
-    return (
-      this.name().trim().length > 0 &&
-      this.year() !== null &&
-      this.year()! > 0 &&
-      this.selectedCategory() !== null &&
-      this.marker() !== null &&
-      !this.creating()
-    );
-  }
-
   create(): void {
-    if (!this.canCreate) return;
+    if (!this.canCreate()) return;
 
     this.creating.set(true);
 
     const latLng = this.marker()!.getLatLng();
 
-    this.coordinatesService.create(latLng.lat, latLng.lng).subscribe({
-      next: (coord) => {
-        this.itemsService.create({
-          name: this.name().trim(),
-          description: this.description().trim() || undefined,
-          year: this.year()!,
-          inventoryId: this.inventoryId(),
-          categoryId: this.selectedCategory()!.id,
-          coordinateId: coord.id
-        }).subscribe({
-          next: (item) => this.uploadPhoto(item.id),
-          error: () => {
-            this.creating.set(false);
-          }
-        });
-      },
-      error: () => {
-        this.creating.set(false);
-      }
-    });
-  }
-
-  private uploadPhoto(itemId: string): void {
-    const file = this.selectedFile();
-    if (!file) {
-      this.creating.set(false);
-      this.onCreated.emit();
-      this.onClose.emit();
-      return;
-    }
-
-    this.photoService.upload(itemId, file, 0).subscribe({
+    this.coordinatesService.create(latLng.lat, latLng.lng).pipe(
+      concatMap(coord => this.itemsService.create({
+        name: this.name().trim(),
+        description: this.description().trim() || undefined,
+        year: this.year()!,
+        inventoryId: this.inventoryId(),
+        categoryId: this.selectedCategory()!.id,
+        coordinateId: coord.id
+      })),
+      concatMap(item => {
+        const file = this.selectedFile();
+        return file
+          ? this.photoService.upload(item.id, file, 0)
+          : of(null);
+      })
+    ).subscribe({
       next: () => {
         this.creating.set(false);
         this.onCreated.emit();
@@ -131,8 +110,6 @@ export class CreateItem {
       },
       error: () => {
         this.creating.set(false);
-        this.onCreated.emit();
-        this.onClose.emit();
       }
     });
   }
