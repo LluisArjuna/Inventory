@@ -30,8 +30,8 @@ export class MapService {
     return marker;
   }
 
-  removeMarker(marker: L.Marker): void {
-    marker.remove();
+  removeMarker(marker: L.Marker | null): void {
+    marker?.remove();
   }
 
   destroyMap(map: L.Map | null): void {
