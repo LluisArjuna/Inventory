@@ -1,9 +1,9 @@
-<label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+<label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
   <input
     type="checkbox"
     [ngModel]="checked()"
     (ngModelChange)="checked.set($event)"
-    class="rounded border-gray-300"
+    class="w-4 h-4 rounded border-border-default bg-surface-nav text-primary focus:ring-primary"
   />
   {{ label() }}
 </label>

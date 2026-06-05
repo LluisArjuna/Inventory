@@ -1,6 +1,6 @@
-<div class="flex items-end gap-4 mb-6 flex-wrap">
-  <div class="flex-1 min-w-200px">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Item name</label>
+<div class="flex items-end gap-4 flex-wrap">
+  <div class="flex-1 min-w-[200px]">
+    <label class="block text-sm font-medium text-text-secondary mb-1">Item name</label>
     <input
       type="text"
       [ngModel]="filterName()"
@@ -11,21 +11,21 @@
   </div>
 
   <div class="w-48">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+    <label class="block text-sm font-medium text-text-secondary mb-1">Category</label>
     <select
       [ngModel]="filterCategoryId()"
       (ngModelChange)="onCategoryChange($event)"
-      class="input-field bg-white"
+      class="w-full bg-surface-nav border border-border-default rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none text-sm"
     >
-      <option value="">All categories</option>
+      <option value="" class="bg-surface-nav">All categories</option>
       @for (cat of categories(); track cat.id) {
-        <option [value]="cat.id">{{ cat.name }}</option>
+        <option [value]="cat.id" class="bg-surface-nav">{{ cat.name }}</option>
       }
     </select>
   </div>
 
   <div class="w-32">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+    <label class="block text-sm font-medium text-text-secondary mb-1">Year</label>
     <input
       type="number"
       [ngModel]="filterYear()"
@@ -38,7 +38,7 @@
   <div>
     <button
       (click)="clearFilters()"
-      class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition"
+      class="px-4 py-2 text-sm font-medium rounded-lg border border-border-default text-text-secondary hover:bg-surface-elevated transition"
     >
       Clear
     </button>

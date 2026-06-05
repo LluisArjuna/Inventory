@@ -1,15 +1,107 @@
-/* You can add global styles to this file, and also import other style files */
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #8b5cf6;
+  --color-primary-hover: #a78bfa;
+  --color-surface-nav: #0f172a;
+  --color-surface-dark: #1e293b;
+  --color-surface-elevated: #334155;
+  --color-surface-page: #0a0f1e;
+  --color-surface-search: #0b1121;
+  --color-border-subtle: #334155;
+  --color-border-default: #475569;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-green-accent: #22c55e;
+  --color-green-deep: #065f46;
+}
 
 @layer components {
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500;
+    @apply w-full px-3 py-2 rounded-lg border border-border-default bg-surface-nav text-white placeholder-text-muted text-sm focus:border-primary focus:outline-none transition-colors;
   }
+
+  .card-dark {
+    @apply bg-surface-dark border border-border-subtle rounded-xl overflow-hidden hover:bg-surface-elevated hover:shadow-lg hover:shadow-purple-500/10 transition-all;
+  }
+
   .inventory-map-popup .leaflet-popup-content-wrapper {
-    @apply rounded-lg p-0 overflow-hidden;
+    @apply rounded-lg p-0 overflow-hidden bg-surface-dark text-white;
   }
   .inventory-map-popup .leaflet-popup-content {
     @apply m-0!;
+  }
+
+  .calendar-dark .fc {
+    --fc-bg-event-opacity: 1;
+    --fc-border-color: #334155;
+    --fc-button-bg-color: #1e293b;
+    --fc-button-border-color: #475569;
+    --fc-button-hover-bg-color: #334155;
+    --fc-button-hover-border-color: #475569;
+    --fc-button-active-bg-color: #8b5cf6;
+    --fc-button-active-border-color: #8b5cf6;
+    --fc-event-bg-color: #8b5cf6;
+    --fc-event-border-color: #8b5cf6;
+    --fc-today-bg-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  }
+
+  .calendar-dark .fc-theme-standard td,
+  .calendar-dark .fc-theme-standard th {
+    border-color: var(--color-border-subtle);
+  }
+
+  .calendar-dark .fc-scrollgrid {
+    border-color: var(--color-border-subtle);
+  }
+
+  .calendar-dark .fc-col-header-cell {
+    background: var(--color-surface-dark);
+    color: var(--color-text-secondary);
+  }
+
+  .calendar-dark .fc-daygrid-day {
+    color: var(--color-text-primary, #f8fafc);
+  }
+
+  .calendar-dark .fc-daygrid-day-number {
+    color: var(--color-text-primary, #f8fafc);
+  }
+
+  .calendar-dark .fc .fc-button {
+    text-transform: capitalize;
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  .calendar-dark .fc .fc-toolbar-title {
+    color: var(--color-text-primary, #f8fafc);
+    font-size: 20px;
+  }
+
+  .calendar-dark .fc .fc-button-primary:not(:disabled).fc-button-active,
+  .calendar-dark .fc .fc-button-primary:not(:disabled):active {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  .calendar-dark .fc-day-today {
+    background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+  }
+
+  .calendar-dark .fc-daygrid-day-top {
+    color: var(--color-text-primary, #f8fafc);
+  }
+
+  .calendar-dark .fc-event {
+    border-radius: 4px;
+  }
+}
+
+@layer base {
+  h1 {
+    font-family: 'DM Serif Display', serif;
   }
 }

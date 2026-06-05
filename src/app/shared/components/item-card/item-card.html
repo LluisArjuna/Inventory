@@ -1,39 +1,54 @@
-<div (click)="view.emit(item().id)" class="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm cursor-pointer">
-  @if (item().photos?.[0]; as photo) {
-    <img [src]="imgUrl(photo.url)" [alt]="photo.altText ?? item().name" class="h-36 w-full object-cover" />
-  } @else {
-    <div class="h-36 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">No photo</div>
-  }
+<div (click)="view.emit(item().id)" class="card-dark cursor-pointer flex flex-col h-full">
+  <div class="h-36 bg-surface-nav flex items-center justify-center flex-shrink-0">
+    @if (item().photos?.[0]; as photo) {
+      <img [src]="imgUrl(photo.url)" [alt]="photo.altText ?? item().name" class="w-full h-full object-cover" />
+    } @else {
+      <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+    }
+  </div>
 
-  <div class="p-3 space-y-1">
-    <h3 class="font-semibold text-gray-900 truncate">{{ item().name }}</h3>
+  <div class="p-3 flex flex-col flex-1">
+    <h3 class="text-white font-semibold truncate mb-1">{{ item().name }}</h3>
 
     @if (truncatedDescription()) {
-      <p class="text-sm text-gray-600 truncate">{{ truncatedDescription() }}</p>
+      <p class="text-text-secondary text-sm truncate mb-2">{{ truncatedDescription() }}</p>
     }
 
-    <div class="flex flex-wrap gap-1.5 text-xs text-gray-500">
-      <span class="bg-gray-100 px-2 py-0.5 rounded">{{ item().year }}</span>
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      @if (item().year) {
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-surface-nav text-text-secondary">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {{ item().year }}
+        </span>
+      }
       @if (categoryName()) {
-        <span class="bg-gray-100 px-2 py-0.5 rounded">{{ categoryName() }}</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-surface-nav text-text-secondary">
+          {{ categoryName() }}
+        </span>
       }
       @if (item().coordX != null && item().coordY != null) {
-        <span class="bg-gray-100 px-2 py-0.5 rounded">{{ locationName() || 'Locating...' }}</span>
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-surface-nav text-text-secondary">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {{ locationName() || 'Locating...' }}
+        </span>
       }
     </div>
 
     @if (showActions()) {
-      <div class="pt-3 border-t border-gray-100 flex gap-2">
-        <button
-          (click)="$event.stopPropagation(); edit.emit(item().id)"
-          class="flex-1 px-3 py-1.5 text-xs font-medium rounded bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
-        >
+      <div class="pt-3 border-t border-border-subtle mt-auto flex gap-2">
+        <button (click)="$event.stopPropagation(); edit.emit(item().id)"
+                class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border-default text-text-secondary hover:bg-surface-elevated transition-colors">
           Edit
         </button>
-        <button
-          (click)="$event.stopPropagation(); delete.emit(item().id)"
-          class="flex-1 px-3 py-1.5 text-xs font-medium rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
-        >
+        <button (click)="$event.stopPropagation(); delete.emit(item().id)"
+                class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-500 text-white transition-colors">
           Delete
         </button>
       </div>
