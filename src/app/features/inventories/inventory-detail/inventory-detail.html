@@ -30,11 +30,11 @@
               </div>
               <div class="flex gap-2">
                 @if (items().length > 0) {
-                  <button (click)="router.navigate(['/inventories', inv.id, 'map'])"
+                  <button (click)="goToMap(inv.id)"
                           class="px-4 py-2 rounded-lg text-sm font-medium border border-border-default text-text-secondary hover:bg-surface-dark transition-colors">
                     View on Map
                   </button>
-                  <button (click)="router.navigate(['/inventories', inv.id, 'stats'])"
+                  <button (click)="goToStats(inv.id)"
                           class="px-4 py-2 rounded-lg text-sm font-medium border border-border-default text-text-secondary hover:bg-surface-dark transition-colors">
                     Statistics
                   </button>
@@ -46,7 +46,7 @@
           <div class="space-y-6">
             <div class="bg-surface-dark border border-border-subtle rounded-xl p-4">
               <app-item-filter
-                [categories]="categories()"
+                [categories]="categoriesStore.categories()"
                 (filterChange)="onFilterChange($event)"
               />
             </div>
@@ -67,7 +67,8 @@
                   @for (item of items(); track item.id) {
                     <app-item-card
                       [item]="item"
-                      [categoryName]="categoryMap().get(item.categoryId) ?? ''"
+                      [categoryName]="categoriesStore.categoryMap().get(item.categoryId) ?? ''"
+                      [locationName]="locationMap().get(item.id) ?? ''"
                       (view)="goToItemDetail($event)"
                     />
                   }

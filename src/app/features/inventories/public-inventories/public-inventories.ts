@@ -74,4 +74,8 @@ export class PublicInventories implements OnInit, OnDestroy {
     this.loadInventories();
   }
 
+  goToInventory(id: string): void {
+    this.router.navigate(['/inventories', id]);
+  }
+
 }

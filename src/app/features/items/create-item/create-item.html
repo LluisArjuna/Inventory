@@ -23,7 +23,7 @@
 
     <app-form-field label="Category" [required]="true">
       <app-autocomplete
-        [items]="categories()"
+        [items]="categoriesStore.categories()"
         [displayFn]="categoryDisplay"
         placeholder="Search category..."
         (selectionChange)="selectedCategory.set($event)"

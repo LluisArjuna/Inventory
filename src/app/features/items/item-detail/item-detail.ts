@@ -1,7 +1,7 @@
 import { Component, inject, signal, type OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ItemsService } from '../services/items.service';
-import { CategoriesService } from '../services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
 import { GeocodeService } from '@shared/services/geocode.service';
 import { MapService } from '@shared/services/map.service';
 import { ToastService } from '@shared/services/toast.service';
@@ -17,7 +17,7 @@ import * as L from 'leaflet';
 })
 export class ItemDetail implements OnInit {
   private readonly itemsService = inject(ItemsService);
-  private readonly categoriesService = inject(CategoriesService);
+  private readonly categoriesStore = inject(CategoriesStore);
   private readonly geocode = inject(GeocodeService);
   private readonly mapService = inject(MapService);
   private readonly toast = inject(ToastService);
@@ -46,13 +46,9 @@ export class ItemDetail implements OnInit {
         this.item.set(item);
         this.selectedPhoto.set(item.photos?.[0]?.url ?? null);
 
-        this.categoriesService.getAll().subscribe({
-          next: (page) => {
-            const cat = page.content.find(c => c.id === item.categoryId);
-            if (cat) this.categoryName.set(cat.name);
-          },
-          error: () => this.toast.error('Failed to load categories')
-        });
+        this.categoriesStore.load();
+        const cat = this.categoriesStore.categories().find(c => c.id === item.categoryId);
+        if (cat) this.categoryName.set(cat.name);
 
         if (item.coordX != null && item.coordY != null) {
           this.geocode.reverse(item.coordX, item.coordY).subscribe({

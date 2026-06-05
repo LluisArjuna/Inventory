@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, type OnInit } from '@angular/core'
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ItemsService } from '../services/items.service';
-import { CategoriesService } from '../services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
 import { CoordinatesService } from '../services/coordinates.service';
 import { PhotoService } from '../services/photo.service';
 import { GeocodeService } from '@shared/services/geocode.service';
@@ -20,7 +20,7 @@ import * as L from 'leaflet';
 })
 export class EditItem implements OnInit {
   private readonly itemsService = inject(ItemsService);
-  private readonly categoriesService = inject(CategoriesService);
+  protected readonly categoriesStore = inject(CategoriesStore);
   private readonly coordinatesService = inject(CoordinatesService);
   private readonly photoService = inject(PhotoService);
   private readonly geocode = inject(GeocodeService);
@@ -36,7 +36,6 @@ export class EditItem implements OnInit {
   readonly description = signal('');
   readonly year = signal<number | null>(null);
   readonly selectedCategory = signal<Category | null>(null);
-  readonly categories = signal<Category[]>([]);
   readonly selectedFile = signal<File | null>(null);
 
   readonly photos = signal<Photo[]>([]);
@@ -72,11 +71,7 @@ export class EditItem implements OnInit {
     }
 
     this.itemId = id;
-
-    this.categoriesService.getAll().subscribe({
-      next: (page) => this.categories.set(page.content),
-      error: () => this.toast.error('Failed to load categories')
-    });
+    this.categoriesStore.load();
 
     this.itemsService.getById(id).subscribe({
       next: (item) => this.populateForm(item),
@@ -101,7 +96,7 @@ export class EditItem implements OnInit {
 
     this.loading.set(false);
 
-    const cat = this.categories().find(c => c.id === item.categoryId);
+    const cat = this.categoriesStore.categories().find(c => c.id === item.categoryId);
     if (cat) this.selectedCategory.set(cat);
 
     setTimeout(() => {

@@ -23,7 +23,7 @@
       } @else {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           @for (inv of inventories(); track inv.id) {
-            <app-inventory-card [inventory]="inv" [firstPhotoUrl]="inv.firstPhotoUrl ?? null" [userName]="inv.userName ?? ''" (view)="router.navigate(['/inventories', $event])" />
+            <app-inventory-card [inventory]="inv" [firstPhotoUrl]="inv.firstPhotoUrl ?? null" [userName]="inv.userName ?? ''" (view)="goToInventory($event)" />
           }
         </div>
 

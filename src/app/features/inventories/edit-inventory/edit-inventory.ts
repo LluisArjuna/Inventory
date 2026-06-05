@@ -2,14 +2,15 @@ import { Component, inject, signal, type OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
-import { CategoriesService } from '@features/items/services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
+import { GeocodeService } from '@shared/services/geocode.service';
 import { CreateItem } from '@features/items/create-item/create-item';
 import { ItemFilter } from '@features/items/item-filter/item-filter';
 import { Form, TextInput, TextArea, Checkbox } from '@shared/components/form';
 import { ItemCard } from '@shared/components/item-card/item-card';
 import { Modal } from '@shared/components/modal/modal';
 import { LendingCalendar } from '@shared/components/lending-calendar/lending-calendar';
-import type { Inventory, Item, Category, AvailabilityDateRange } from '@shared/models';
+import type { Inventory, Item, AvailabilityDateRange } from '@shared/models';
 
 @Component({
   selector: 'app-edit-inventory',
@@ -19,7 +20,8 @@ import type { Inventory, Item, Category, AvailabilityDateRange } from '@shared/m
 export class EditInventory implements OnInit {
   private readonly inventoriesService = inject(InventoriesService);
   private readonly itemsService = inject(ItemsService);
-  private readonly categoriesService = inject(CategoriesService);
+  protected readonly categoriesStore = inject(CategoriesStore);
+  private readonly geocode = inject(GeocodeService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -33,12 +35,12 @@ export class EditInventory implements OnInit {
   readonly items = signal<Item[]>([]);
   readonly itemsLoading = signal(false);
   readonly deleting = signal<Set<string>>(new Set());
-  readonly categories = signal<Category[]>([]);
-  readonly categoryMap = signal<Record<string, string>>({});
+
   readonly showCreateDialog = signal(false);
   readonly filters = signal<{ name?: string; categoryId?: string; year?: number }>({});
   readonly showDeleteConfirm = signal(false);
   readonly pendingDeleteId = signal<string | null>(null);
+  readonly locationMap = signal<Map<string, string>>(new Map());
   readonly availabilities = signal<AvailabilityDateRange[]>([]);
   readonly savingAvailability = signal(false);
 
@@ -52,15 +54,7 @@ export class EditInventory implements OnInit {
     }
 
     this.inventoryId = id;
-
-    this.categoriesService.getAll().subscribe({
-      next: (page) => {
-        this.categories.set(page.content);
-        const map: Record<string, string> = {};
-        page.content.forEach((c: Category) => { map[c.id] = c.name; });
-        this.categoryMap.set(map);
-      }
-    });
+    this.categoriesStore.load();
 
     this.inventoriesService.getById(id).subscribe({
       next: (inv) => {
@@ -87,11 +81,26 @@ export class EditInventory implements OnInit {
       next: (page) => {
         this.items.set(page.content);
         this.itemsLoading.set(false);
+        this.geocodeItems(page.content);
       },
       error: () => {
         this.itemsLoading.set(false);
       }
     });
+  }
+
+  private geocodeItems(items: Item[]): void {
+    const map = new Map<string, string>();
+    for (const item of items) {
+      if (item.coordX != null && item.coordY != null) {
+        this.geocode.reverse(item.coordX, item.coordY).subscribe({
+          next: result => {
+            map.set(item.id, result.locationName);
+            this.locationMap.set(new Map(map));
+          }
+        });
+      }
+    }
   }
 
   onEditItem(id: string): void {

@@ -1,5 +1,5 @@
 <div (click)="view.emit(item().id)" class="card-dark cursor-pointer flex flex-col h-full">
-  <div class="h-36 bg-surface-nav flex items-center justify-center flex-shrink-0">
+  <div class="h-36 bg-surface-nav flex items-center justify-center shrink-0">
     @if (item().photos?.[0]; as photo) {
       <img [src]="imgUrl(photo.url)" [alt]="photo.altText ?? item().name" class="w-full h-full object-cover" />
     } @else {
@@ -36,7 +36,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          {{ locationName() || 'Locating...' }}
+          {{ locationName() || 'Location unavailable' }}
         </span>
       }
     </div>

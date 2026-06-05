@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output, signal, type OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { concatMap, of } from 'rxjs';
-import { CategoriesService } from '../services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
 import { CoordinatesService } from '../services/coordinates.service';
 import { ItemsService } from '../services/items.service';
 import { PhotoService } from '../services/photo.service';
@@ -19,7 +19,7 @@ import * as L from 'leaflet';
   templateUrl: './create-item.html'
 })
 export class CreateItem implements OnInit {
-  private readonly categoriesService = inject(CategoriesService);
+  protected readonly categoriesStore = inject(CategoriesStore);
   private readonly coordinatesService = inject(CoordinatesService);
   private readonly itemsService = inject(ItemsService);
   private readonly photoService = inject(PhotoService);
@@ -35,7 +35,6 @@ export class CreateItem implements OnInit {
   readonly year = signal<number | null>(null);
   readonly selectedCategory = signal<Category | null>(null);
   readonly selectedFile = signal<File | null>(null);
-  readonly categories = signal<Category[]>([]);
   readonly creating = signal(false);
 
   readonly marker = signal<L.Marker | null>(null);
@@ -55,11 +54,7 @@ export class CreateItem implements OnInit {
   );
 
   ngOnInit(): void {
-    this.categoriesService.getAll().subscribe({
-      next: (page) => this.categories.set(page.content),
-      error: () => this.toast.error('Failed to load categories')
-    });
-
+    this.categoriesStore.load();
     setTimeout(() => this.initMap(), 0);
   }
 

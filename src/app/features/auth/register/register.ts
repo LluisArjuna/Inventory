@@ -5,6 +5,7 @@ import { AuthService } from '@core/services/auth.service';
 import { GoogleSignIn } from '@shared/components/google-sign-in/google-sign-in';
 import { OrDivider } from '@shared/components/or-divider/or-divider';
 import { getAuthErrorMessage } from '@shared/utils/auth-errors.utils';
+import { validatePassword } from '@shared/utils/validators';
 
 @Component({
   selector: 'app-register',
@@ -24,13 +25,9 @@ export class Register {
   async onSubmit(): Promise<void> {
     this.error.set(null);
 
-    if (this.password() !== this.confirmPassword()) {
-      this.error.set('Passwords do not match');
-      return;
-    }
-
-    if (this.password().length < 6) {
-      this.error.set('Password must be at least 6 characters');
+    const validationError = validatePassword(this.password(), this.confirmPassword());
+    if (validationError) {
+      this.error.set(validationError);
       return;
     }
 
