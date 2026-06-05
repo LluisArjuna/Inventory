@@ -25,6 +25,17 @@
         }
       </div>
 
+      @if (availabilities().length > 0) {
+        <div class="border-t pt-8 mt-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Lending Availability</h2>
+          <app-lending-calendar
+            calendarId="inventory-detail-calendar"
+            [editable]="false"
+            [availabilities]="availabilities()"
+          />
+        </div>
+      }
+
       <div class="border-t pt-6">
         <app-item-filter
           [categories]="categories()"

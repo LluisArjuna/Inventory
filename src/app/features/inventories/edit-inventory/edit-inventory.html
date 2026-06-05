@@ -54,6 +54,17 @@
         </div>
       }
     </div>
+
+    <div class="border-t pt-8 mt-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Lending Availability</h2>
+      <p class="text-sm text-gray-500 mb-4">Select date ranges when this inventory can be lent. Click to add, click an existing range to remove it.</p>
+      <app-lending-calendar
+        calendarId="edit-inventory-calendar"
+        [editable]="true"
+        [availabilities]="availabilities()"
+        (availabilitiesChange)="onAvailabilitiesChange($event)"
+      />
+    </div>
   }
 </div>
 
