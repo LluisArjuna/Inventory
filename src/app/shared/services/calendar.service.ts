@@ -9,16 +9,19 @@ export class CalendarService {
     plugins: [dayGridPlugin, interactionPlugin],
     locale: 'en',
     height: 'auto',
+    initialView: 'dayGridMonth',
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: ''
+      right: 'dayGridMonth,dayGridWeek'
     },
   };
 
   createCalendar(elementId: string, options: Partial<CalendarOptions> = {}): Calendar | null {
     const el = document.getElementById(elementId);
     if (!el) return null;
+
+    el.classList.add('calendar-dark');
 
     const calendar = new Calendar(el, {
       ...this.defaultOptions,

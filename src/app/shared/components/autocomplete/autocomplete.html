@@ -11,12 +11,12 @@
   />
 
   @if (showDropdown() && filtered().length > 0) {
-    <ul class="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+    <ul class="absolute z-20 w-full mt-1 bg-surface-dark border border-border-subtle rounded-lg shadow-lg max-h-48 overflow-y-auto">
       @for (item of filtered(); track item.id; let i = $index) {
         <li
           (mousedown)="select(item)"
-          class="px-3 py-2 text-sm cursor-pointer"
-          [class]="i === highlightedIndex() ? 'bg-blue-100' : 'hover:bg-gray-100'"
+          class="px-3 py-2 text-sm cursor-pointer text-white"
+          [class]="i === highlightedIndex() ? 'bg-surface-elevated' : 'hover:bg-surface-elevated'"
         >
           {{ displayFn()(item) }}
         </li>

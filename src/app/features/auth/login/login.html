@@ -1,14 +1,14 @@
-<div class="flex min-h-screen items-center justify-center">
-  <div class="w-full max-w-sm space-y-6 rounded-xl border p-6 shadow-sm">
-    <h1 class="text-xl font-semibold text-center">Sign in</h1>
+<div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+  <div class="w-full max-w-sm space-y-6 bg-surface-dark border border-border-subtle rounded-xl p-6 shadow-lg">
+    <h1 class="text-xl font-semibold text-white text-center">Sign in</h1>
 
     @if (error(); as msg) {
-      <p class="text-sm text-red-600 text-center">{{ msg }}</p>
+      <p class="text-sm text-red-400 text-center">{{ msg }}</p>
     }
 
     <form (ngSubmit)="onSubmit()" class="space-y-4">
       <div>
-        <label for="email" class="mb-1 block text-sm font-medium">Email</label>
+        <label for="email" class="mb-1 block text-sm font-medium text-text-secondary">Email</label>
         <input
           id="email"
           type="email"
@@ -17,12 +17,12 @@
           [ngModel]="email()"
           (ngModelChange)="email.set($event)"
           name="email"
-          class="w-full rounded-lg border px-3 py-2 text-sm"
+          class="input-field"
         />
       </div>
 
       <div>
-        <label for="password" class="mb-1 block text-sm font-medium">Password</label>
+        <label for="password" class="mb-1 block text-sm font-medium text-text-secondary">Password</label>
         <input
           id="password"
           type="password"
@@ -31,14 +31,14 @@
           [ngModel]="password()"
           (ngModelChange)="password.set($event)"
           name="password"
-          class="w-full rounded-lg border px-3 py-2 text-sm"
+          class="input-field"
         />
       </div>
 
       <button
         type="submit"
         [disabled]="submitting()"
-        class="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        class="w-full rounded-lg bg-primary hover:bg-primary-hover px-4 py-2 text-sm font-medium text-white disabled:opacity-50 transition-colors"
       >
         {{ submitting() ? 'Signing in…' : 'Sign in' }}
       </button>
@@ -51,9 +51,9 @@
       (signIn)="onGoogleSignIn()"
     />
 
-    <p class="text-center text-sm text-gray-600">
+    <p class="text-center text-sm text-text-secondary">
       Don't have an account?
-      <a routerLink="/register" class="text-blue-600 hover:underline">Register</a>
+      <a routerLink="/register" class="text-primary hover:text-primary-hover">Register</a>
     </p>
   </div>
 </div>

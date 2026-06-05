@@ -3,11 +3,11 @@
   (onSearch)="onSearch($event)"
 />
 @if (showCreateDialog()) {
-    <div class="fixed inset-0 bg-black/30 z-40 p-3">
+    <div class="fixed inset-0 bg-black/60 z-40 p-3">
       <app-create-inventory (onClose)="showCreateDialog.set(false)"/>
     </div>
 }
-<main>
+<main class="min-h-screen bg-surface-page pt-16">
   <router-outlet />
 </main>
 <app-toast-container />
