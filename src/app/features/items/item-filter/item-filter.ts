@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime } from 'rxjs';
@@ -7,7 +7,8 @@ import type { Category } from '@shared/models';
 @Component({
   selector: 'app-item-filter',
   imports: [FormsModule],
-  templateUrl: './item-filter.html'
+  templateUrl: './item-filter.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ItemFilter {
   private readonly destroyRef = inject(DestroyRef);

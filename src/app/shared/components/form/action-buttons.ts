@@ -1,8 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-action-buttons',
-  templateUrl: './action-buttons.html'
+  templateUrl: './action-buttons.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ActionButtons {
   readonly disabled = input(false);

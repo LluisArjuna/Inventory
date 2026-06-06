@@ -1,8 +1,9 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-form-field',
-  templateUrl: './form-field.html'
+  templateUrl: './form-field.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormField {
   readonly label = input.required<string>();

@@ -1,4 +1,5 @@
-import { Component, inject, signal, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '@core/services/auth.service';
@@ -16,7 +17,8 @@ import type { Inventory, Item, AvailabilityDateRange } from '@shared/models';
 @Component({
   selector: 'app-inventory-detail',
   imports: [ItemCard, Pagination, ItemFilter, BackButton, RouterLink, LendingCalendar],
-  templateUrl: './inventory-detail.html'
+  templateUrl: './inventory-detail.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryDetail implements OnInit {
   private readonly inventoriesService = inject(InventoriesService);
@@ -26,6 +28,7 @@ export class InventoryDetail implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -49,7 +52,7 @@ export class InventoryDetail implements OnInit {
     forkJoin({
       inventory: this.inventoriesService.getById(id),
       availabilities: this.inventoriesService.getAvailabilities(id)
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ inventory, availabilities }) => {
         this.inventory.set(inventory);
         this.availabilities.set(availabilities);
@@ -70,27 +73,31 @@ export class InventoryDetail implements OnInit {
     const inv = this.inventory();
     if (!inv) return;
 
-    this.itemsService.getAll(this.currentPage(), 20, { inventoryId: inv.id, ...this.filters() }).subscribe({
-      next: (page) => {
-        this.items.set(page.content);
-        this.totalPages.set(page.totalPages);
-        this.loading.set(false);
-        this.geocodeItems(page.content);
-      },
-      error: () => this.loading.set(false)
-    });
+    this.itemsService.getAll(this.currentPage(), 20, { inventoryId: inv.id, ...this.filters() })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page) => {
+          this.items.set(page.content);
+          this.totalPages.set(page.totalPages);
+          this.loading.set(false);
+          this.geocodeItems(page.content);
+        },
+        error: () => this.loading.set(false)
+      });
   }
 
   private geocodeItems(items: Item[]): void {
     const map = new Map<string, string>();
     for (const item of items) {
       if (item.coordX != null && item.coordY != null) {
-        this.geocode.reverse(item.coordX, item.coordY).subscribe({
-          next: result => {
-            map.set(item.id, result.locationName);
-            this.locationMap.set(new Map(map));
-          }
-        });
+        this.geocode.reverse(item.coordX, item.coordY)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: result => {
+              map.set(item.id, result.locationName);
+              this.locationMap.set(new Map(map));
+            }
+          });
       }
     }
   }

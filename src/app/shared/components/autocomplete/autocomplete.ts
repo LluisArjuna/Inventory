@@ -1,10 +1,11 @@
-import { Component, input, output, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-autocomplete',
   imports: [FormsModule],
-  templateUrl: './autocomplete.html'
+  templateUrl: './autocomplete.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Autocomplete<T extends { id: string }> {
   readonly items = input.required<T[]>();

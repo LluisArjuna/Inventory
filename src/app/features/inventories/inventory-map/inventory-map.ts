@@ -1,4 +1,5 @@
-import { Component, inject, signal, type OnInit, type OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type OnInit, type OnDestroy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
@@ -12,7 +13,8 @@ import * as L from 'leaflet';
 @Component({
   selector: 'app-inventory-map',
   imports: [BackButton],
-  templateUrl: './inventory-map.html'
+  templateUrl: './inventory-map.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryMap implements OnInit, OnDestroy {
   private readonly inventoriesService = inject(InventoriesService);
@@ -21,6 +23,7 @@ export class InventoryMap implements OnInit, OnDestroy {
   private readonly mapService = inject(MapService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly inventory = signal<Inventory | null>(null);
@@ -36,7 +39,7 @@ export class InventoryMap implements OnInit, OnDestroy {
 
     this.categoriesStore.load();
 
-    this.inventoriesService.getById(id).subscribe({
+    this.inventoriesService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (inventory) => {
         this.inventory.set(inventory);
         this.loadItems(inventory.id);
@@ -46,16 +49,18 @@ export class InventoryMap implements OnInit, OnDestroy {
   }
 
   private loadItems(inventoryId: string): void {
-    this.itemsService.getAll(0, 200, { inventoryId }).subscribe({
-      next: (page) => {
-        const all = page.content;
-        this.items.set(all);
-        this.geocodedItems.set(all.filter(it => it.coordX != null && it.coordY != null));
-        this.loading.set(false);
-        setTimeout(() => this.initMap(), 0);
-      },
-      error: () => this.loading.set(false)
-    });
+    this.itemsService.getAll(0, 200, { inventoryId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page) => {
+          const all = page.content;
+          this.items.set(all);
+          this.geocodedItems.set(all.filter(it => it.coordX != null && it.coordY != null));
+          this.loading.set(false);
+          setTimeout(() => this.initMap(), 0);
+        },
+        error: () => this.loading.set(false)
+      });
   }
 
   private initMap(): void {

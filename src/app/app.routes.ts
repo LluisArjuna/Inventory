@@ -1,60 +1,50 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from '@core/guards/auth.guard';
-import { Login } from '@features/auth/login/login';
-import { Register } from '@features/auth/register/register';
-import { MyInventories } from '@features/inventories/my-inventories/my-inventories';
-import { EditInventory } from '@features/inventories/edit-inventory/edit-inventory';
-import { InventoryDetail } from '@features/inventories/inventory-detail/inventory-detail';
-import { InventoryMap } from '@features/inventories/inventory-map/inventory-map';
-import { InventoryStats } from '@features/inventories/inventory-stats/inventory-stats';
-import { PublicInventories } from '@features/inventories/public-inventories/public-inventories';
-import { EditItem } from '@features/items/edit-item/edit-item';
-import { ItemDetail } from '@features/items/item-detail/item-detail';
 
 export const routes: Routes = [
   {
     path: '',
-    component: PublicInventories
+    loadComponent: () => import('@features/inventories/public-inventories/public-inventories').then(m => m.PublicInventories)
   },
   {
     path: 'my-inventories',
-    component: MyInventories,
+    loadComponent: () => import('@features/inventories/my-inventories/my-inventories').then(m => m.MyInventories),
     canActivate: [authGuard]
   },
   {
     path: 'inventories/:id/edit',
-    component: EditInventory,
+    loadComponent: () => import('@features/inventories/edit-inventory/edit-inventory').then(m => m.EditInventory),
     canActivate: [authGuard]
   },
   {
     path: 'inventories/:id/map',
-    component: InventoryMap
+    loadComponent: () => import('@features/inventories/inventory-map/inventory-map').then(m => m.InventoryMap)
   },
   {
     path: 'inventories/:id/stats',
-    component: InventoryStats
+    loadComponent: () => import('@features/inventories/inventory-stats/inventory-stats').then(m => m.InventoryStats)
   },
   {
     path: 'inventories/:id',
-    component: InventoryDetail
+    loadComponent: () => import('@features/inventories/inventory-detail/inventory-detail').then(m => m.InventoryDetail)
   },
   {
     path: 'items/:id/edit',
-    component: EditItem,
+    loadComponent: () => import('@features/items/edit-item/edit-item').then(m => m.EditItem),
     canActivate: [authGuard]
   },
   {
     path: 'items/:id',
-    component: ItemDetail
+    loadComponent: () => import('@features/items/item-detail/item-detail').then(m => m.ItemDetail)
   },
   {
     path: 'login',
-    component: Login,
+    loadComponent: () => import('@features/auth/login/login').then(m => m.Login),
     canActivate: [guestGuard]
   },
   {
     path: 'register',
-    component: Register,
+    loadComponent: () => import('@features/auth/register/register').then(m => m.Register),
     canActivate: [guestGuard]
   }
 ];

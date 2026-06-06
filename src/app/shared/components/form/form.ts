@@ -1,11 +1,12 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { ActionButtons } from './action-buttons';
 
 
 @Component({
   selector: 'app-form',
   imports: [ActionButtons],
-  templateUrl: './form.html'
+  templateUrl: './form.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Form {
   readonly title = input('');

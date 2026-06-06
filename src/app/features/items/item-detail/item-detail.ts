@@ -1,4 +1,5 @@
-import { Component, inject, signal, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ItemsService } from '../services/items.service';
 import { CategoriesStore } from '@shared/stores/categories.store';
@@ -13,7 +14,8 @@ import * as L from 'leaflet';
 @Component({
   selector: 'app-item-detail',
   imports: [BackButton],
-  templateUrl: './item-detail.html'
+  templateUrl: './item-detail.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ItemDetail implements OnInit {
   private readonly itemsService = inject(ItemsService);
@@ -23,6 +25,7 @@ export class ItemDetail implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly item = signal<Item | null>(null);
@@ -41,7 +44,7 @@ export class ItemDetail implements OnInit {
       return;
     }
 
-    this.itemsService.getById(id).subscribe({
+    this.itemsService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (item) => {
         this.item.set(item);
         this.selectedPhoto.set(item.photos?.[0]?.url ?? null);
@@ -51,10 +54,12 @@ export class ItemDetail implements OnInit {
         if (cat) this.categoryName.set(cat.name);
 
         if (item.coordX != null && item.coordY != null) {
-          this.geocode.reverse(item.coordX, item.coordY).subscribe({
-            next: result => this.locationName.set(result.locationName),
-            error: () => this.locationName.set('Location unavailable')
-          });
+          this.geocode.reverse(item.coordX, item.coordY)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: result => this.locationName.set(result.locationName),
+              error: () => this.locationName.set('Location unavailable')
+            });
         }
 
         this.loading.set(false);

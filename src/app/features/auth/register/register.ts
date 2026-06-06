@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '@core/services/auth.service';
@@ -10,7 +10,8 @@ import { validatePassword } from '@shared/utils/validators';
 @Component({
   selector: 'app-register',
   imports: [FormsModule, RouterLink, GoogleSignIn, OrDivider],
-  templateUrl: './register.html'
+  templateUrl: './register.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Register {
   private readonly auth = inject(AuthService);

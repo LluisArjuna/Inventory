@@ -1,11 +1,12 @@
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import type { Item } from '@shared/models';
 import { getOptimizedImageUrl } from '@shared/utils/image.utils';
 import { truncate } from '@shared/utils/string.utils';
 
 @Component({
   selector: 'app-item-card',
-  templateUrl: './item-card.html'
+  templateUrl: './item-card.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ItemCard {
   readonly item = input.required<Item>();

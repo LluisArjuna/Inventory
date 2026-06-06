@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal, type OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables } from 'chart.js';
@@ -15,7 +16,8 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-inventory-stats',
   imports: [BaseChartDirective, BackButton],
-  templateUrl: './inventory-stats.html'
+  templateUrl: './inventory-stats.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryStats implements OnInit {
   private readonly inventoriesService = inject(InventoriesService);
@@ -23,6 +25,7 @@ export class InventoryStats implements OnInit {
   private readonly categoriesStore = inject(CategoriesStore);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly inventory = signal<Inventory | null>(null);
@@ -50,7 +53,7 @@ export class InventoryStats implements OnInit {
 
     this.categoriesStore.load();
 
-    this.inventoriesService.getById(id).subscribe({
+    this.inventoriesService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (inventory) => {
         this.inventory.set(inventory);
         this.loadItems(inventory.id);
@@ -60,14 +63,16 @@ export class InventoryStats implements OnInit {
   }
 
   private loadItems(inventoryId: string): void {
-    this.itemsService.getAll(0, 200, { inventoryId }).subscribe({
-      next: (page) => {
-        this.items.set(page.content);
-        this.buildCharts(page.content);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
-    });
+    this.itemsService.getAll(0, 200, { inventoryId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page) => {
+          this.items.set(page.content);
+          this.buildCharts(page.content);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false)
+      });
   }
 
   private buildCharts(items: Item[]): void {

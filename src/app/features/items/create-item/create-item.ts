@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, output, signal, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal, type OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { concatMap, of } from 'rxjs';
 import { CategoriesStore } from '@shared/stores/categories.store';
@@ -16,7 +17,8 @@ import * as L from 'leaflet';
 @Component({
   selector: 'app-create-item',
   imports: [FormsModule, Autocomplete, Form, FormField, TextInput, TextArea, Modal],
-  templateUrl: './create-item.html'
+  templateUrl: './create-item.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateItem implements OnInit {
   protected readonly categoriesStore = inject(CategoriesStore);
@@ -25,6 +27,7 @@ export class CreateItem implements OnInit {
   private readonly photoService = inject(PhotoService);
   private readonly mapService = inject(MapService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly inventoryId = input.required<string>();
   readonly onClose = output<void>();
@@ -99,7 +102,8 @@ export class CreateItem implements OnInit {
         return file
           ? this.photoService.upload(item.id, file, 0)
           : of(null);
-      })
+      }),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
         this.creating.set(false);
