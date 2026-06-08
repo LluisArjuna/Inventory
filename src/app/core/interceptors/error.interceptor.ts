@@ -2,13 +2,12 @@ import { type HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { ToastService } from '@shared/services/toast.service';
-
-const SKIP_PATHS = ['/auth/firebase'];
+import { API_ROUTES } from '../constants/api-routes';
 
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {
   const toast = inject(ToastService);
 
-  if (SKIP_PATHS.some(p => request.url.includes(p))) {
+  if (request.url.includes(API_ROUTES.AUTH.FIREBASE)) {
     return next(request);
   }
 
