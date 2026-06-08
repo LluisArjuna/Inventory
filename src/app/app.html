@@ -6,7 +6,7 @@
   (onSearch)="onSearch($event)"
 />
 @if (showCreateDialog()) {
-    <div class="fixed inset-0 bg-black/60 z-40 p-3" role="dialog" aria-modal="true" aria-label="Create inventory" (keydown)="$event.key === 'Escape' && showCreateDialog.set(false)">
+    <div class="fixed inset-0 bg-black/60 z-40 p-3" role="dialog" aria-modal="true" aria-label="Create inventory" (keydown)="$event.key === 'Escape' ? showCreateDialog.set(false) : undefined">
       <app-create-inventory (onClose)="showCreateDialog.set(false)"/>
     </div>
 }
