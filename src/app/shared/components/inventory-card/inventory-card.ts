@@ -1,11 +1,12 @@
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import type { Inventory } from '@shared/models';
 import { getOptimizedImageUrl } from '@shared/utils/image.utils';
 import { truncate } from '@shared/utils/string.utils';
 
 @Component({
   selector: 'app-inventory-card',
-  templateUrl: './inventory-card.html'
+  templateUrl: './inventory-card.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryCard {
   readonly inventory = input.required<Inventory>();

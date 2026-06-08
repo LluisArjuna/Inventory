@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
@@ -8,7 +8,8 @@ import { ToastService } from '@shared/services/toast.service';
 @Component({
   selector: 'app-create-inventory',
   imports: [Form, TextInput, TextArea, Checkbox],
-  templateUrl: './create-inventory.html'
+  templateUrl: './create-inventory.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateInventory {
   private readonly service = inject(InventoriesService);

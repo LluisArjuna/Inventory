@@ -1,47 +1,44 @@
-import { Component, inject, signal, computed, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
 import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
-import { CategoriesService } from '@features/items/services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
+import { GeocodeService } from '@shared/services/geocode.service';
 import { ItemFilter } from '@features/items/item-filter/item-filter';
 import { ItemCard } from '@shared/components/item-card/item-card';
 import { Pagination } from '@shared/components/pagination/pagination';
 import { BackButton } from '@shared/components/back-button/back-button';
 import { LendingCalendar } from '@shared/components/lending-calendar/lending-calendar';
-import type { Inventory, Item, Category, AvailabilityDateRange } from '@shared/models';
+import type { Inventory, Item, AvailabilityDateRange } from '@shared/models';
 
 @Component({
   selector: 'app-inventory-detail',
   imports: [ItemCard, Pagination, ItemFilter, BackButton, RouterLink, LendingCalendar],
-  templateUrl: './inventory-detail.html'
+  templateUrl: './inventory-detail.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryDetail implements OnInit {
   private readonly inventoriesService = inject(InventoriesService);
   private readonly itemsService = inject(ItemsService);
-  private readonly categoriesService = inject(CategoriesService);
+  protected readonly categoriesStore = inject(CategoriesStore);
+  private readonly geocode = inject(GeocodeService);
   protected readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly inventory = signal<Inventory | null>(null);
   readonly items = signal<Item[]>([]);
-  readonly categories = signal<Category[]>([]);
   readonly currentPage = signal(0);
   readonly totalPages = signal(0);
   readonly filters = signal<{ name?: string; categoryId?: string; year?: number }>({});
   readonly availabilities = signal<AvailabilityDateRange[]>([]);
-
-  readonly categoryMap = computed(() => {
-    const map = new Map<string, string>();
-    for (const c of this.categories()) {
-      map.set(c.id, c.name);
-    }
-    return map;
-  });
+  readonly locationMap = signal<Map<string, string>>(new Map());
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -50,16 +47,24 @@ export class InventoryDetail implements OnInit {
       return;
     }
 
+    this.categoriesStore.load();
+
     forkJoin({
-      categories: this.categoriesService.getAll(),
       inventory: this.inventoriesService.getById(id),
       availabilities: this.inventoriesService.getAvailabilities(id)
-    }).subscribe({
-      next: ({ categories, inventory, availabilities }) => {
-        this.categories.set(categories.content);
+    }).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      switchMap(({ inventory, availabilities }) => {
         this.inventory.set(inventory);
         this.availabilities.set(availabilities);
-        this.loadItems();
+        return this.itemsService.getAll(0, 20, { inventoryId: inventory.id });
+      })
+    ).subscribe({
+      next: (page) => {
+        this.items.set(page.content);
+        this.totalPages.set(page.totalPages);
+        this.loading.set(false);
+        this.geocodeItems(page.content);
       },
       error: () => {
         this.loading.set(false);
@@ -76,14 +81,23 @@ export class InventoryDetail implements OnInit {
     const inv = this.inventory();
     if (!inv) return;
 
-    this.itemsService.getAll(this.currentPage(), 20, { inventoryId: inv.id, ...this.filters() }).subscribe({
-      next: (page) => {
-        this.items.set(page.content);
-        this.totalPages.set(page.totalPages);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
-    });
+    this.itemsService.getAll(this.currentPage(), 20, { inventoryId: inv.id, ...this.filters() })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page) => {
+          this.items.set(page.content);
+          this.totalPages.set(page.totalPages);
+          this.loading.set(false);
+          this.geocodeItems(page.content);
+        },
+        error: () => this.loading.set(false)
+      });
+  }
+
+  private geocodeItems(items: Item[]): void {
+    this.geocode.batchReverse(items)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(result => this.locationMap.set(result));
   }
 
   onFilterChange(f: { name?: string; categoryId?: string; year?: number }): void {
@@ -99,5 +113,13 @@ export class InventoryDetail implements OnInit {
 
   goToItemDetail(itemId: string): void {
     this.router.navigate(['/items', itemId]);
+  }
+
+  goToMap(id: string): void {
+    this.router.navigate(['/inventories', id, 'map']);
+  }
+
+  goToStats(id: string): void {
+    this.router.navigate(['/inventories', id, 'stats']);
   }
 }

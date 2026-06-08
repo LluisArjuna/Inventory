@@ -23,7 +23,7 @@
 
     <app-form-field label="Category" [required]="true">
       <app-autocomplete
-        [items]="categories()"
+        [items]="categoriesStore.categories()"
         [displayFn]="categoryDisplay"
         placeholder="Search category..."
         (selectionChange)="selectedCategory.set($event)"
@@ -31,7 +31,7 @@
     </app-form-field>
 
     <app-form-field label="Location" [required]="true">
-      <div id="map" class="h-48 overflow-hidden rounded-lg border border-border-default"></div>
+      <div id="map" class="h-48 overflow-hidden rounded-lg border border-border-default" role="img" aria-label="Location picker map"></div>
       @if (coordText()) {
         <p class="text-xs text-text-secondary mt-1">Selected: {{ coordText() }}</p>
       }

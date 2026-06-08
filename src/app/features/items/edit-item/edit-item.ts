@@ -1,8 +1,11 @@
-import { Component, inject, signal, computed, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, computed, type OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 import { ItemsService } from '../services/items.service';
-import { CategoriesService } from '../services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
 import { CoordinatesService } from '../services/coordinates.service';
 import { PhotoService } from '../services/photo.service';
 import { GeocodeService } from '@shared/services/geocode.service';
@@ -16,11 +19,12 @@ import * as L from 'leaflet';
 @Component({
   selector: 'app-edit-item',
   imports: [FormsModule, Autocomplete, Form, FormField, TextInput, TextArea],
-  templateUrl: './edit-item.html'
+  templateUrl: './edit-item.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditItem implements OnInit {
   private readonly itemsService = inject(ItemsService);
-  private readonly categoriesService = inject(CategoriesService);
+  protected readonly categoriesStore = inject(CategoriesStore);
   private readonly coordinatesService = inject(CoordinatesService);
   private readonly photoService = inject(PhotoService);
   private readonly geocode = inject(GeocodeService);
@@ -28,6 +32,7 @@ export class EditItem implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -36,7 +41,6 @@ export class EditItem implements OnInit {
   readonly description = signal('');
   readonly year = signal<number | null>(null);
   readonly selectedCategory = signal<Category | null>(null);
-  readonly categories = signal<Category[]>([]);
   readonly selectedFile = signal<File | null>(null);
 
   readonly photos = signal<Photo[]>([]);
@@ -72,13 +76,9 @@ export class EditItem implements OnInit {
     }
 
     this.itemId = id;
+    this.categoriesStore.load();
 
-    this.categoriesService.getAll().subscribe({
-      next: (page) => this.categories.set(page.content),
-      error: () => this.toast.error('Failed to load categories')
-    });
-
-    this.itemsService.getById(id).subscribe({
+    this.itemsService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (item) => this.populateForm(item),
       error: () => this.router.navigate(['/my-inventories'])
     });
@@ -101,7 +101,7 @@ export class EditItem implements OnInit {
 
     this.loading.set(false);
 
-    const cat = this.categories().find(c => c.id === item.categoryId);
+    const cat = this.categoriesStore.categories().find(c => c.id === item.categoryId);
     if (cat) this.selectedCategory.set(cat);
 
     setTimeout(() => {
@@ -125,10 +125,12 @@ export class EditItem implements OnInit {
       this.marker.set(newMarker);
       this.coordText.set(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       this.coordLocation.set('');
-      this.geocode.reverse(lat, lng).subscribe({
-        next: result => this.coordLocation.set(result.locationName),
-        error: () => this.coordLocation.set('Location unavailable')
-      });
+      this.geocode.reverse(lat, lng)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: result => this.coordLocation.set(result.locationName),
+          error: () => this.coordLocation.set('Location unavailable')
+        });
       this.coordChanged = true;
     });
   }
@@ -140,10 +142,12 @@ export class EditItem implements OnInit {
     this.marker.set(newMarker);
     this.coordText.set(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
     this.coordLocation.set('');
-    this.geocode.reverse(lat, lng).subscribe({
-      next: result => this.coordLocation.set(result.locationName),
-      error: () => this.coordLocation.set('Location unavailable')
-    });
+    this.geocode.reverse(lat, lng)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: result => this.coordLocation.set(result.locationName),
+        error: () => this.coordLocation.set('Location unavailable')
+      });
     this.map.setView([lat, lng], 13);
   }
 
@@ -155,15 +159,17 @@ export class EditItem implements OnInit {
   deletePhoto(photoId: string): void {
     this.deletingPhotos.update(s => new Set(s).add(photoId));
 
-    this.photoService.deletePhoto(this.itemId, photoId).subscribe({
-      next: () => {
-        this.deletingPhotos.update(s => { s.delete(photoId); return new Set(s); });
-        this.photos.update(list => list.filter(p => p.id !== photoId));
-      },
-      error: () => {
-        this.deletingPhotos.update(s => { s.delete(photoId); return new Set(s); });
-      }
-    });
+    this.photoService.deletePhoto(this.itemId, photoId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.deletingPhotos.update(s => { s.delete(photoId); return new Set(s); });
+          this.photos.update(list => list.filter(p => p.id !== photoId));
+        },
+        error: () => {
+          this.deletingPhotos.update(s => { s.delete(photoId); return new Set(s); });
+        }
+      });
   }
 
   save(): void {
@@ -172,49 +178,33 @@ export class EditItem implements OnInit {
     this.saving.set(true);
 
     const latLng = this.marker()?.getLatLng();
+    const coordId$ = this.coordChanged && latLng
+      ? this.coordinatesService.create(latLng.lat, latLng.lng).pipe(map(c => c.id))
+      : of(this.originalCoordId ?? undefined);
 
-    const doUpdate = (coordinateId: string | undefined) => {
-      this.itemsService.update(this.itemId, {
-        name: this.name().trim(),
-        description: this.description().trim() || undefined,
-        year: this.year()!,
-        categoryId: this.selectedCategory()!.id,
-        coordinateId
-      }).subscribe({
-        next: () => this.uploadPhotoIfNeeded(),
-        error: () => this.saving.set(false)
-      });
-    };
-
-    if (this.coordChanged && latLng) {
-      this.coordinatesService.create(latLng.lat, latLng.lng).subscribe({
-        next: (coord) => doUpdate(coord.id),
-        error: () => this.saving.set(false)
-      });
-    } else {
-      doUpdate(this.originalCoordId ?? undefined);
-    }
-  }
-
-  private uploadPhotoIfNeeded(): void {
-    const file = this.selectedFile();
-    if (!file) {
-      this.saving.set(false);
-      this.router.navigate(['/inventories', this.inventoryId, 'edit']);
-      return;
-    }
-
-    const nextPosition = this.photos().length;
-
-    this.photoService.upload(this.itemId, file, nextPosition).subscribe({
+    coordId$.pipe(
+      switchMap(coordinateId =>
+        this.itemsService.update(this.itemId, {
+          name: this.name().trim(),
+          description: this.description().trim() || undefined,
+          year: this.year()!,
+          categoryId: this.selectedCategory()!.id,
+          coordinateId
+        })
+      ),
+      switchMap(() => {
+        const file = this.selectedFile();
+        return file
+          ? this.photoService.upload(this.itemId, file, this.photos().length)
+          : of(null);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => {
         this.saving.set(false);
         this.router.navigate(['/inventories', this.inventoryId, 'edit']);
       },
-      error: () => {
-        this.saving.set(false);
-        this.router.navigate(['/inventories', this.inventoryId, 'edit']);
-      }
+      error: () => this.saving.set(false)
     });
   }
 

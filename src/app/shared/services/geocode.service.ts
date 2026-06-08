@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, timer } from 'rxjs';
+import { Observable, of, timer, forkJoin } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { ApiService } from '@core/services/api.service';
+import { API_ROUTES } from '@core/constants/api-routes';
 
 interface NominatimAddress {
   address: {
@@ -48,7 +49,7 @@ export class GeocodeService {
 
     return timer(delay).pipe(
       switchMap(() =>
-        this.api.get<NominatimSearchResult[]>('/geocode/search', { q: country }).pipe(
+        this.api.get<NominatimSearchResult[]>(API_ROUTES.GEOCODE.SEARCH, { q: country }).pipe(
           tap(() => { this.lastCallTime = Date.now(); }),
           map(results => {
             if (results.length === 0) return null;
@@ -68,6 +69,25 @@ export class GeocodeService {
     );
   }
 
+  batchReverse(items: { id: string; coordX?: number | null; coordY?: number | null }[]): Observable<Map<string, string>> {
+    const withCoords = items.filter(i => i.coordX != null && i.coordY != null);
+    if (withCoords.length === 0) return of(new Map());
+
+    return forkJoin(
+      withCoords.map(item =>
+        this.reverse(item.coordX!, item.coordY!).pipe(
+          map(result => ({ id: item.id, name: result.locationName }))
+        )
+      )
+    ).pipe(
+      map(results => {
+        const map = new Map<string, string>();
+        for (const r of results) map.set(r.id, r.name);
+        return map;
+      })
+    );
+  }
+
   reverse(lat: number, lng: number): Observable<GeocodeResult> {
     const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
     const cached = this.cache.get(key);
@@ -77,7 +97,7 @@ export class GeocodeService {
 
     return timer(delay).pipe(
       switchMap(() =>
-        this.api.get<NominatimAddress>('/geocode/reverse', { lat, lon: lng }).pipe(
+        this.api.get<NominatimAddress>(API_ROUTES.GEOCODE.REVERSE, { lat, lon: lng }).pipe(
           tap(() => { this.lastCallTime = Date.now(); }),
           map(resp => {
             const addr = resp.address;

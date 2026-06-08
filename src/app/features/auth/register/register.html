@@ -1,9 +1,9 @@
-<div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
-  <div class="w-full max-w-sm space-y-6 bg-surface-dark border border-border-subtle rounded-xl p-6 shadow-lg">
+<section class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+  <article class="w-full max-w-sm space-y-6 bg-surface-dark border border-border-subtle rounded-xl p-6 shadow-lg">
     <h1 class="text-xl font-semibold text-white text-center">Create account</h1>
 
     @if (error(); as msg) {
-      <p class="text-sm text-red-400 text-center">{{ msg }}</p>
+      <p class="text-sm text-red-400 text-center" role="alert">{{ msg }}</p>
     }
 
     <form (ngSubmit)="onSubmit()" class="space-y-4">
@@ -69,5 +69,5 @@
       Already have an account?
       <a routerLink="/login" class="text-primary hover:text-primary-hover">Sign in</a>
     </p>
-  </div>
-</div>
+  </article>
+</section>

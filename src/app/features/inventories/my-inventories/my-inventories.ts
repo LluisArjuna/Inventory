@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, computed, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
@@ -11,12 +12,14 @@ import { Modal } from '@shared/components/modal/modal';
 @Component({
   selector: 'app-my-inventories',
   imports: [InventoryCard, SkeletonCard, Pagination, Modal],
-  templateUrl: './my-inventories.html'
+  templateUrl: './my-inventories.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyInventories implements OnInit {
   private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
   private readonly inventoriesService = inject(InventoriesService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly inventories = signal<Inventory[]>([]);
   readonly loading = signal(true);
@@ -42,17 +45,19 @@ export class MyInventories implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.inventoriesService.getByUserId(user.id, this.currentPage()).subscribe({
-      next: (page: Page<Inventory>) => {
-        this.inventories.set(page.content);
-        this.totalPages.set(page.totalPages);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err.message ?? 'Failed to load inventories');
-        this.loading.set(false);
-      }
-    });
+    this.inventoriesService.getByUserId(user.id, this.currentPage())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page: Page<Inventory>) => {
+          this.inventories.set(page.content);
+          this.totalPages.set(page.totalPages);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(err.message ?? 'Failed to load inventories');
+          this.loading.set(false);
+        }
+      });
   }
 
   onToggleVisibility(id: string): void {
@@ -61,17 +66,19 @@ export class MyInventories implements OnInit {
 
     this.toggling.update(s => new Set(s).add(id));
 
-    this.inventoriesService.toggleVisibility(id, !inventory.isPublic).subscribe({
-      next: () => {
-        this.toggling.update(s => { s.delete(id); return new Set(s); });
-        this.inventories.update(list =>
-          list.map(i => i.id === id ? { ...i, isPublic: !i.isPublic } : i)
-        );
-      },
-      error: () => {
-        this.toggling.update(s => { s.delete(id); return new Set(s); });
-      }
-    });
+    this.inventoriesService.toggleVisibility(id, !inventory.isPublic)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toggling.update(s => { s.delete(id); return new Set(s); });
+          this.inventories.update(list =>
+            list.map(i => i.id === id ? { ...i, isPublic: !i.isPublic } : i)
+          );
+        },
+        error: () => {
+          this.toggling.update(s => { s.delete(id); return new Set(s); });
+        }
+      });
   }
 
   onEdit(id: string): void {
@@ -92,7 +99,7 @@ export class MyInventories implements OnInit {
 
     this.isDeleting.update(s => new Set(s).add(id));
 
-    this.inventoriesService.delete(id).subscribe({
+    this.inventoriesService.delete(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.isDeleting.update(s => { s.delete(id); return new Set(s); });
         this.inventories.update(list => list.filter(i => i.id !== id));

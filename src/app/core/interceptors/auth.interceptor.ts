@@ -1,11 +1,10 @@
 import { type HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-
-const AUTH_ENDPOINT = '/auth/firebase';
+import { API_ROUTES } from '../constants/api-routes';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
-  if (request.url.includes(AUTH_ENDPOINT)) {
+  if (request.url.includes(API_ROUTES.AUTH.FIREBASE)) {
     return next(request);
   }
 

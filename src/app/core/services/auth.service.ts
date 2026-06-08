@@ -17,6 +17,7 @@ import { environment } from '../../../environments/environment';
 import type { User } from '@shared/models';
 import { ApiService } from './api.service';
 import { STORAGE_KEYS } from '../constants/storage-keys';
+import { API_ROUTES } from '../constants/api-routes';
 
 interface AuthResponse {
   token: string;
@@ -47,10 +48,11 @@ export class AuthService {
     }
 
     onAuthStateChanged(this.auth, (firebaseUser) => {
-      if (!firebaseUser && !this.userSignal()) {
+      if (!firebaseUser) {
         localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
         localStorage.removeItem(STORAGE_KEYS.USER_ID);
+        this.userSignal.set(null);
       }
       this.loadingSignal.set(false);
     });
@@ -76,7 +78,7 @@ export class AuthService {
     const idToken = await firebaseUser.getIdToken();
 
     const auth = await firstValueFrom(
-      this.api.create<AuthResponse>('/auth/firebase', { token: idToken })
+      this.api.create<AuthResponse>(API_ROUTES.AUTH.FIREBASE, { token: idToken })
     );
 
     this.setSession(auth.token, firebaseUser.uid, firebaseUser.email ?? '');

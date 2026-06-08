@@ -1,5 +1,5 @@
 @if (totalPages() > 1) {
-  <div class="flex justify-center gap-2 mt-8">
+  <nav aria-label="Pagination" class="flex justify-center gap-2 mt-8">
     <button
       (click)="pageChange.emit(currentPage() - 1)"
       [disabled]="currentPage() === 0"
@@ -11,6 +11,7 @@
     @for (page of pages(); track page) {
       <button
         (click)="pageChange.emit(page)"
+        [attr.aria-current]="page === currentPage() ? 'page' : null"
         class="px-3 py-1.5 text-sm rounded-lg border transition-colors"
         [class]="page === currentPage()
           ? 'bg-primary text-white border-primary'
@@ -27,5 +28,5 @@
     >
       Next
     </button>
-  </div>
+  </nav>
 }

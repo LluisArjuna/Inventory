@@ -1,4 +1,4 @@
-<div class="pb-12">
+<section class="pb-12">
   <div class="pt-12 px-4">
     <div class="max-w-7xl mx-auto">
       @if (loading()) {
@@ -6,12 +6,12 @@
       } @else if (inventory(); as inv) {
         <app-back-button [route]="['/inventories', inv.id]" label="Back to inventory" />
 
-        <div class="mb-8">
+        <header class="mb-8">
           <h1 class="text-3xl font-bold text-white mb-1">{{ inv.name }}</h1>
-          <h2 class="text-xl text-text-secondary">Statistics</h2>
-        </div>
+          <p class="text-xl text-text-secondary">Statistics</p>
+        </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <section aria-label="Summary statistics" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <div class="bg-surface-dark border border-border-subtle rounded-xl p-6">
             <p class="text-3xl font-bold text-white">{{ summary().total }}</p>
             <p class="text-sm text-text-secondary mt-1">Total items</p>
@@ -28,26 +28,26 @@
             <p class="text-3xl font-bold text-primary">{{ summary().categories }}</p>
             <p class="text-sm text-text-secondary mt-1">Categories</p>
           </div>
-        </div>
+        </section>
 
         @if (items().length > 0) {
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             @if (categoryChartData().labels!.length > 0) {
-              <div class="bg-surface-dark border border-border-subtle rounded-xl p-6 flex flex-col items-center">
+              <section class="bg-surface-dark border border-border-subtle rounded-xl p-6 flex flex-col items-center">
                 <h2 class="text-lg font-semibold text-white mb-4 self-start">Items per Category</h2>
                 <div class="w-full max-w-xs aspect-square">
-                  <canvas baseChart type="doughnut" [data]="categoryChartData()" [options]="categoryChartOptions"></canvas>
+                  <canvas baseChart type="doughnut" [data]="categoryChartData()" [options]="categoryChartOptions" aria-label="Items per category chart"></canvas>
                 </div>
-              </div>
+              </section>
             }
 
             @if (yearChartData().labels!.length > 0) {
-              <div class="bg-surface-dark border border-border-subtle rounded-xl p-6">
+              <section class="bg-surface-dark border border-border-subtle rounded-xl p-6">
                 <h2 class="text-lg font-semibold text-white mb-4">Items by Year</h2>
                 <div class="h-72">
-                  <canvas baseChart type="bar" [data]="yearChartData()" [options]="yearChartOptions"></canvas>
+                  <canvas baseChart type="bar" [data]="yearChartData()" [options]="yearChartOptions" aria-label="Items by year chart"></canvas>
                 </div>
-              </div>
+              </section>
             }
           </div>
         }
@@ -60,4 +60,4 @@
       }
     </div>
   </div>
-</div>
+</section>

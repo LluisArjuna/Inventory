@@ -1,7 +1,10 @@
-import { Component, inject, signal, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { of, switchMap, catchError } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ItemsService } from '../services/items.service';
-import { CategoriesService } from '../services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
 import { GeocodeService } from '@shared/services/geocode.service';
 import { MapService } from '@shared/services/map.service';
 import { ToastService } from '@shared/services/toast.service';
@@ -13,16 +16,18 @@ import * as L from 'leaflet';
 @Component({
   selector: 'app-item-detail',
   imports: [BackButton],
-  templateUrl: './item-detail.html'
+  templateUrl: './item-detail.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ItemDetail implements OnInit {
   private readonly itemsService = inject(ItemsService);
-  private readonly categoriesService = inject(CategoriesService);
+  private readonly categoriesStore = inject(CategoriesStore);
   private readonly geocode = inject(GeocodeService);
   private readonly mapService = inject(MapService);
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly item = signal<Item | null>(null);
@@ -41,25 +46,15 @@ export class ItemDetail implements OnInit {
       return;
     }
 
-    this.itemsService.getById(id).subscribe({
-      next: (item) => {
+    this.itemsService.getById(id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      switchMap(item => {
         this.item.set(item);
         this.selectedPhoto.set(item.photos?.[0]?.url ?? null);
 
-        this.categoriesService.getAll().subscribe({
-          next: (page) => {
-            const cat = page.content.find(c => c.id === item.categoryId);
-            if (cat) this.categoryName.set(cat.name);
-          },
-          error: () => this.toast.error('Failed to load categories')
-        });
-
-        if (item.coordX != null && item.coordY != null) {
-          this.geocode.reverse(item.coordX, item.coordY).subscribe({
-            next: result => this.locationName.set(result.locationName),
-            error: () => this.locationName.set('Location unavailable')
-          });
-        }
+        this.categoriesStore.load();
+        const cat = this.categoriesStore.categories().find(c => c.id === item.categoryId);
+        if (cat) this.categoryName.set(cat.name);
 
         this.loading.set(false);
 
@@ -68,7 +63,17 @@ export class ItemDetail implements OnInit {
         if (x != null && y != null) {
           setTimeout(() => this.initMap(x, y), 0);
         }
-      },
+
+        if (item.coordX != null && item.coordY != null) {
+          return this.geocode.reverse(item.coordX, item.coordY).pipe(
+            map(r => r.locationName),
+            catchError(() => of('Location unavailable'))
+          );
+        }
+        return of('');
+      })
+    ).subscribe({
+      next: locationName => { if (locationName) this.locationName.set(locationName); },
       error: () => this.router.navigate(['/'])
     });
   }

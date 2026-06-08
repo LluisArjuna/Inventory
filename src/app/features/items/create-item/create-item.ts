@@ -1,7 +1,8 @@
-import { Component, computed, inject, input, output, signal, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal, type OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { concatMap, of } from 'rxjs';
-import { CategoriesService } from '../services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
 import { CoordinatesService } from '../services/coordinates.service';
 import { ItemsService } from '../services/items.service';
 import { PhotoService } from '../services/photo.service';
@@ -16,15 +17,17 @@ import * as L from 'leaflet';
 @Component({
   selector: 'app-create-item',
   imports: [FormsModule, Autocomplete, Form, FormField, TextInput, TextArea, Modal],
-  templateUrl: './create-item.html'
+  templateUrl: './create-item.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateItem implements OnInit {
-  private readonly categoriesService = inject(CategoriesService);
+  protected readonly categoriesStore = inject(CategoriesStore);
   private readonly coordinatesService = inject(CoordinatesService);
   private readonly itemsService = inject(ItemsService);
   private readonly photoService = inject(PhotoService);
   private readonly mapService = inject(MapService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly inventoryId = input.required<string>();
   readonly onClose = output<void>();
@@ -35,7 +38,6 @@ export class CreateItem implements OnInit {
   readonly year = signal<number | null>(null);
   readonly selectedCategory = signal<Category | null>(null);
   readonly selectedFile = signal<File | null>(null);
-  readonly categories = signal<Category[]>([]);
   readonly creating = signal(false);
 
   readonly marker = signal<L.Marker | null>(null);
@@ -55,11 +57,7 @@ export class CreateItem implements OnInit {
   );
 
   ngOnInit(): void {
-    this.categoriesService.getAll().subscribe({
-      next: (page) => this.categories.set(page.content),
-      error: () => this.toast.error('Failed to load categories')
-    });
-
+    this.categoriesStore.load();
     setTimeout(() => this.initMap(), 0);
   }
 
@@ -104,7 +102,8 @@ export class CreateItem implements OnInit {
         return file
           ? this.photoService.upload(item.id, file, 0)
           : of(null);
-      })
+      }),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
         this.creating.set(false);

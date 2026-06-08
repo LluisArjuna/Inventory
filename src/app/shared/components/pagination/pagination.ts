@@ -1,8 +1,9 @@
-import { Component, input, output, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, computed } from '@angular/core';
 
 @Component({
   selector: 'app-pagination',
-  templateUrl: './pagination.html'
+  templateUrl: './pagination.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Pagination {
   readonly currentPage = input.required<number>();

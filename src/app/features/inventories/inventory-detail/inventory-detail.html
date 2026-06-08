@@ -1,4 +1,4 @@
-<div class="pb-12">
+<section class="pb-12">
   <div class="pt-12 px-4">
     <div class="max-w-7xl mx-auto">
       @if (loading()) {
@@ -30,11 +30,11 @@
               </div>
               <div class="flex gap-2">
                 @if (items().length > 0) {
-                  <button (click)="router.navigate(['/inventories', inv.id, 'map'])"
+                  <button (click)="goToMap(inv.id)"
                           class="px-4 py-2 rounded-lg text-sm font-medium border border-border-default text-text-secondary hover:bg-surface-dark transition-colors">
                     View on Map
                   </button>
-                  <button (click)="router.navigate(['/inventories', inv.id, 'stats'])"
+                  <button (click)="goToStats(inv.id)"
                           class="px-4 py-2 rounded-lg text-sm font-medium border border-border-default text-text-secondary hover:bg-surface-dark transition-colors">
                     Statistics
                   </button>
@@ -46,7 +46,7 @@
           <div class="space-y-6">
             <div class="bg-surface-dark border border-border-subtle rounded-xl p-4">
               <app-item-filter
-                [categories]="categories()"
+                [categories]="categoriesStore.categories()"
                 (filterChange)="onFilterChange($event)"
               />
             </div>
@@ -63,11 +63,12 @@
                   <p class="text-text-secondary">This inventory has no items yet.</p>
                 </div>
               } @else {
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div role="list" aria-label="Items" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                   @for (item of items(); track item.id) {
                     <app-item-card
                       [item]="item"
-                      [categoryName]="categoryMap().get(item.categoryId) ?? ''"
+                      [categoryName]="categoriesStore.categoryMap().get(item.categoryId) ?? ''"
+                      [locationName]="locationMap().get(item.id) ?? ''"
                       (view)="goToItemDetail($event)"
                     />
                   }
@@ -83,8 +84,8 @@
           </div>
 
           @if (availabilities().length > 0) {
-            <div class="bg-surface-dark border border-border-subtle rounded-xl p-6 mt-8">
-              <h2 class="text-xl font-semibold text-white mb-4">Lending Availability</h2>
+            <section class="bg-surface-dark border border-border-subtle rounded-xl p-6 mt-8" aria-labelledby="avail-heading">
+              <h2 id="avail-heading" class="text-xl font-semibold text-white mb-4">Lending Availability</h2>
               <div class="calendar-dark">
                 <app-lending-calendar
                   calendarId="inventory-detail-calendar"
@@ -92,10 +93,10 @@
                   [availabilities]="availabilities()"
                 />
               </div>
-            </div>
+            </section>
           }
         }
       }
     </div>
   </div>
-</div>
+</section>

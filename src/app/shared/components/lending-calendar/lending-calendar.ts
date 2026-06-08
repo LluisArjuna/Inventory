@@ -1,11 +1,12 @@
-import { Component, ElementRef, inject, input, output, signal, afterNextRender, OnDestroy, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, input, output, signal, afterNextRender, OnDestroy, effect } from '@angular/core';
 import { Calendar } from '@fullcalendar/core';
 import { CalendarService } from '@shared/services/calendar.service';
 import type { AvailabilityDateRange } from '@shared/models';
 
 @Component({
   selector: 'app-lending-calendar',
-  template: `<div [id]="calendarId()" class="fc-calendar"></div>`
+  template: `<div [id]="calendarId()" class="fc-calendar"></div>`,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LendingCalendar implements OnDestroy {
   private readonly calendarService = inject(CalendarService);

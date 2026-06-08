@@ -1,32 +1,34 @@
-import { Component, inject, signal, type OnInit, type OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type OnInit, type OnDestroy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
-import { CategoriesService } from '@features/items/services/categories.service';
+import { CategoriesStore } from '@shared/stores/categories.store';
 import { MapService } from '@shared/services/map.service';
 import { BackButton } from '@shared/components/back-button/back-button';
+import { buildItemPopupHtml } from '@shared/utils/map-popup.utils';
 import type { Inventory, Item } from '@shared/models';
 import * as L from 'leaflet';
 
 @Component({
   selector: 'app-inventory-map',
   imports: [BackButton],
-  templateUrl: './inventory-map.html'
+  templateUrl: './inventory-map.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryMap implements OnInit, OnDestroy {
   private readonly inventoriesService = inject(InventoriesService);
   private readonly itemsService = inject(ItemsService);
-  private readonly categoriesService = inject(CategoriesService);
+  private readonly categoriesStore = inject(CategoriesStore);
   private readonly mapService = inject(MapService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly inventory = signal<Inventory | null>(null);
   readonly items = signal<Item[]>([]);
   readonly geocodedItems = signal<Item[]>([]);
-  readonly categoryMap = signal<Map<string, string>>(new Map());
 
   private map: L.Map | null = null;
   private markers: L.LayerGroup | null = null;
@@ -35,14 +37,10 @@ export class InventoryMap implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.router.navigate(['/']); return; }
 
-    forkJoin({
-      catPage: this.categoriesService.getAll(),
-      inventory: this.inventoriesService.getById(id)
-    }).subscribe({
-      next: ({ catPage, inventory }) => {
-        const map = new Map<string, string>();
-        for (const c of catPage.content) map.set(c.id, c.name);
-        this.categoryMap.set(map);
+    this.categoriesStore.load();
+
+    this.inventoriesService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (inventory) => {
         this.inventory.set(inventory);
         this.loadItems(inventory.id);
       },
@@ -51,16 +49,18 @@ export class InventoryMap implements OnInit, OnDestroy {
   }
 
   private loadItems(inventoryId: string): void {
-    this.itemsService.getAll(0, 200, { inventoryId }).subscribe({
-      next: (page) => {
-        const all = page.content;
-        this.items.set(all);
-        this.geocodedItems.set(all.filter(it => it.coordX != null && it.coordY != null));
-        this.loading.set(false);
-        setTimeout(() => this.initMap(), 0);
-      },
-      error: () => this.loading.set(false)
-    });
+    this.itemsService.getAll(0, 200, { inventoryId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page) => {
+          const all = page.content;
+          this.items.set(all);
+          this.geocodedItems.set(all.filter(it => it.coordX != null && it.coordY != null));
+          this.loading.set(false);
+          setTimeout(() => this.initMap(), 0);
+        },
+        error: () => this.loading.set(false)
+      });
   }
 
   private initMap(): void {
@@ -83,24 +83,8 @@ export class InventoryMap implements OnInit, OnDestroy {
   }
 
   private createMarker(item: Item): L.Marker {
-    const catName = this.categoryMap().get(item.categoryId) ?? '';
-    const photoUrl = item.photos?.[0]?.url;
-
-    const popupHtml = `
-      <div class="item-link" data-item-id="${item.id}">
-        ${photoUrl ? `<img src="${photoUrl}" alt="${item.name}" style="width:100%;height:110px;object-fit:cover;display:block" />` : ''}
-        <div style="padding:14px 16px 12px">
-          <strong style="font-size:15px">${item.name}</strong>
-          <div style="font-size:12px;color:#666;margin-top:4px">
-            ${item.year}
-            ${catName ? `<span style="margin-left:6px">· ${catName}</span>` : ''}
-          </div>
-          <div style="margin-top:12px">
-            <span style="display:block;text-align:center;padding:7px 0;font-size:12px;font-weight:500;color:#2563eb;background:#eff6ff;border-radius:6px">View details</span>
-          </div>
-        </div>
-      </div>
-    `;
+    const catName = this.categoriesStore.categoryMap().get(item.categoryId) ?? '';
+    const popupHtml = buildItemPopupHtml(item, catName);
 
     const marker = L.marker([item.coordX!, item.coordY!]);
     marker.bindPopup(popupHtml, { closeButton: false, className: 'inventory-map-popup', maxWidth: 220, minWidth: 200 });
