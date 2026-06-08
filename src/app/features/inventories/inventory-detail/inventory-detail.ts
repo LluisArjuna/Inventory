@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
 import { AuthService } from '@core/services/auth.service';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
@@ -52,11 +52,19 @@ export class InventoryDetail implements OnInit {
     forkJoin({
       inventory: this.inventoriesService.getById(id),
       availabilities: this.inventoriesService.getAvailabilities(id)
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: ({ inventory, availabilities }) => {
+    }).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      switchMap(({ inventory, availabilities }) => {
         this.inventory.set(inventory);
         this.availabilities.set(availabilities);
-        this.loadItems();
+        return this.itemsService.getAll(0, 20, { inventoryId: inventory.id });
+      })
+    ).subscribe({
+      next: (page) => {
+        this.items.set(page.content);
+        this.totalPages.set(page.totalPages);
+        this.loading.set(false);
+        this.geocodeItems(page.content);
       },
       error: () => {
         this.loading.set(false);
@@ -87,19 +95,9 @@ export class InventoryDetail implements OnInit {
   }
 
   private geocodeItems(items: Item[]): void {
-    const map = new Map<string, string>();
-    for (const item of items) {
-      if (item.coordX != null && item.coordY != null) {
-        this.geocode.reverse(item.coordX, item.coordY)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              map.set(item.id, result.locationName);
-              this.locationMap.set(new Map(map));
-            }
-          });
-      }
-    }
+    this.geocode.batchReverse(items)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(result => this.locationMap.set(result));
   }
 
   onFilterChange(f: { name?: string; categoryId?: string; year?: number }): void {
