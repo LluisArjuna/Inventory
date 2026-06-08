@@ -1,4 +1,4 @@
-<div class="pb-12">
+<section class="pb-12">
   <div class="pt-12 px-4">
     <div class="max-w-4xl mx-auto">
       <h1 class="text-3xl font-bold text-white mb-8">Edit Item</h1>
@@ -7,7 +7,7 @@
         <p class="text-text-secondary">Loading...</p>
       } @else {
         <div class="space-y-6">
-          <div class="bg-surface-dark border border-border-subtle rounded-xl p-6 space-y-4">
+          <section class="bg-surface-dark border border-border-subtle rounded-xl p-6 space-y-4">
             <h2 class="text-lg font-semibold text-white">Basic Information</h2>
             <app-form
               [disabled]="saving()"
@@ -39,19 +39,19 @@
                 />
               </app-form-field>
             </app-form>
-          </div>
+          </section>
 
-          <div class="bg-surface-dark border border-border-subtle rounded-xl p-6 space-y-4">
+          <section class="bg-surface-dark border border-border-subtle rounded-xl p-6 space-y-4">
             <h2 class="text-lg font-semibold text-white">Location</h2>
             <app-form-field label="Location">
-              <div id="edit-item-map" class="h-48 overflow-hidden rounded-lg border border-border-default"></div>
+              <div id="edit-item-map" class="h-48 overflow-hidden rounded-lg border border-border-default" role="img" aria-label="Location picker map"></div>
               @if (coordText()) {
                 <p class="text-xs text-text-secondary mt-1">{{ coordLocation() || 'Locating...' }} ({{ coordText() }})</p>
               }
             </app-form-field>
-          </div>
+          </section>
 
-          <div class="bg-surface-dark border border-border-subtle rounded-xl p-6 space-y-4">
+          <section class="bg-surface-dark border border-border-subtle rounded-xl p-6 space-y-4">
             <h2 class="text-lg font-semibold text-white">Photos</h2>
             <app-form-field label="Photos">
               @if (photos().length > 0) {
@@ -62,7 +62,7 @@
                       <button
                         (click)="deletePhoto(photo.id)"
                         [disabled]="deletingPhotos().has(photo.id)"
-                        class="absolute top-2 right-2 p-1.5 bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                        class="absolute top-2 right-2 p-1.5 bg-red-600 rounded-full opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity disabled:opacity-50" aria-label="Delete photo"
                       >
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -80,9 +80,9 @@
                 class="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-white hover:file:bg-primary-hover"
               />
             </app-form-field>
-          </div>
+          </section>
         </div>
       }
     </div>
   </div>
-</div>
+</section>

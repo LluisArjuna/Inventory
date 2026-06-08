@@ -24,6 +24,11 @@ export class Autocomplete<T extends { id: string }> {
     return q ? this.items().filter(i => this.displayFn()(i).toLowerCase().includes(q)) : [];
   });
 
+  readonly activeDescendantId = computed(() => {
+    const idx = this.highlightedIndex();
+    return idx >= 0 ? `autocomplete-option-${idx}` : undefined;
+  });
+
   select(item: T): void {
     this.selected.set(item);
     this.query.set(this.displayFn()(item));
