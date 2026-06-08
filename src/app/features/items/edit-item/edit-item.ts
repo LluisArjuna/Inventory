@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, compute
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 import { ItemsService } from '../services/items.service';
 import { CategoriesStore } from '@shared/stores/categories.store';
 import { CoordinatesService } from '../services/coordinates.service';
@@ -176,54 +178,34 @@ export class EditItem implements OnInit {
     this.saving.set(true);
 
     const latLng = this.marker()?.getLatLng();
+    const coordId$ = this.coordChanged && latLng
+      ? this.coordinatesService.create(latLng.lat, latLng.lng).pipe(map(c => c.id))
+      : of(this.originalCoordId ?? undefined);
 
-    const doUpdate = (coordinateId: string | undefined) => {
-      this.itemsService.update(this.itemId, {
-        name: this.name().trim(),
-        description: this.description().trim() || undefined,
-        year: this.year()!,
-        categoryId: this.selectedCategory()!.id,
-        coordinateId
-      }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: () => this.uploadPhotoIfNeeded(),
-        error: () => this.saving.set(false)
-      });
-    };
-
-    if (this.coordChanged && latLng) {
-      this.coordinatesService.create(latLng.lat, latLng.lng)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (coord) => doUpdate(coord.id),
-          error: () => this.saving.set(false)
-        });
-    } else {
-      doUpdate(this.originalCoordId ?? undefined);
-    }
-  }
-
-  private uploadPhotoIfNeeded(): void {
-    const file = this.selectedFile();
-    if (!file) {
-      this.saving.set(false);
-      this.router.navigate(['/inventories', this.inventoryId, 'edit']);
-      return;
-    }
-
-    const nextPosition = this.photos().length;
-
-    this.photoService.upload(this.itemId, file, nextPosition)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.router.navigate(['/inventories', this.inventoryId, 'edit']);
-        },
-        error: () => {
-          this.saving.set(false);
-          this.router.navigate(['/inventories', this.inventoryId, 'edit']);
-        }
-      });
+    coordId$.pipe(
+      switchMap(coordinateId =>
+        this.itemsService.update(this.itemId, {
+          name: this.name().trim(),
+          description: this.description().trim() || undefined,
+          year: this.year()!,
+          categoryId: this.selectedCategory()!.id,
+          coordinateId
+        })
+      ),
+      switchMap(() => {
+        const file = this.selectedFile();
+        return file
+          ? this.photoService.upload(this.itemId, file, this.photos().length)
+          : of(null);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.router.navigate(['/inventories', this.inventoryId, 'edit']);
+      },
+      error: () => this.saving.set(false)
+    });
   }
 
   cancel(): void {

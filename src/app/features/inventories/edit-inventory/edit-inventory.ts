@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, switchMap } from 'rxjs';
 import { InventoriesService } from '../services/inventories.service';
 import { ItemsService } from '@features/items/services/items.service';
 import { CategoriesStore } from '@shared/stores/categories.store';
@@ -59,22 +60,20 @@ export class EditInventory implements OnInit {
     this.inventoryId = id;
     this.categoriesStore.load();
 
-    this.inventoriesService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (inv) => {
-        this.inventory.set(inv);
-        this.name.set(inv.name);
-        this.description.set(inv.description ?? '');
-        this.isPublic.set(inv.isPublic);
+    forkJoin({
+      inventory: this.inventoriesService.getById(id),
+      availabilities: this.inventoriesService.getAvailabilities(id)
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: ({ inventory, availabilities }) => {
+        this.inventory.set(inventory);
+        this.name.set(inventory.name);
+        this.description.set(inventory.description ?? '');
+        this.isPublic.set(inventory.isPublic);
+        this.availabilities.set(availabilities);
         this.loading.set(false);
         this.loadItems();
       },
-      error: () => {
-        this.loading.set(false);
-      }
-    });
-
-    this.inventoriesService.getAvailabilities(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (avail) => this.availabilities.set(avail)
+      error: () => { this.loading.set(false); }
     });
   }
 
@@ -95,19 +94,9 @@ export class EditInventory implements OnInit {
   }
 
   private geocodeItems(items: Item[]): void {
-    const map = new Map<string, string>();
-    for (const item of items) {
-      if (item.coordX != null && item.coordY != null) {
-        this.geocode.reverse(item.coordX, item.coordY)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              map.set(item.id, result.locationName);
-              this.locationMap.set(new Map(map));
-            }
-          });
-      }
-    }
+    this.geocode.batchReverse(items)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(result => this.locationMap.set(result));
   }
 
   onEditItem(id: string): void {
@@ -158,35 +147,24 @@ export class EditInventory implements OnInit {
     if (!inv || !this.name().trim()) return;
 
     this.saving.set(true);
+    this.savingAvailability.set(true);
 
     this.inventoriesService.update(inv.id, {
       name: this.name().trim(),
       description: this.description().trim() || undefined,
       isPublic: this.isPublic()
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.saveAvailabilities(inv.id);
-      },
+    }).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      switchMap(() =>
+        this.inventoriesService.setAvailabilities(inv.id, this.availabilities())
+      )
+    ).subscribe({
+      next: () => { this.router.navigate(['/my-inventories']); },
       error: () => {
         this.saving.set(false);
+        this.savingAvailability.set(false);
       }
     });
-  }
-
-  private saveAvailabilities(inventoryId: string): void {
-    this.savingAvailability.set(true);
-
-    this.inventoriesService.setAvailabilities(inventoryId, this.availabilities())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.router.navigate(['/my-inventories']);
-        },
-        error: () => {
-          this.saving.set(false);
-          this.savingAvailability.set(false);
-        }
-      });
   }
 
   onAvailabilitiesChange(ranges: AvailabilityDateRange[]): void {
