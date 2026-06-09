@@ -1,6 +1,7 @@
 import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { CreateItem } from './create-item';
+import { AiService } from '@shared/services/ai.service';
 import { CategoriesStore } from '@shared/stores/categories.store';
 import { CoordinatesService } from '../services/coordinates.service';
 import { ItemsService } from '../services/items.service';
@@ -11,6 +12,7 @@ import { ToastService } from '@shared/services/toast.service';
 describe('CreateItem', () => {
   let fixture: ComponentFixture<CreateItem>;
   let component: CreateItem;
+  let aiService: { suggestFromPhotos: ReturnType<typeof vi.fn> };
   let coordinatesService: { create: ReturnType<typeof vi.fn> };
   let itemsService: { create: ReturnType<typeof vi.fn> };
   let photoService: { upload: ReturnType<typeof vi.fn> };
@@ -22,6 +24,7 @@ describe('CreateItem', () => {
   const mockMarker = { getLatLng: () => ({ lat: 41.5, lng: 2.1 }) };
 
   beforeEach(async () => {
+    aiService = { suggestFromPhotos: vi.fn() };
     coordinatesService = { create: vi.fn() };
     itemsService = { create: vi.fn() };
     photoService = { upload: vi.fn() };
@@ -34,12 +37,13 @@ describe('CreateItem', () => {
     await TestBed.configureTestingModule({
       imports: [CreateItem],
       providers: [
+        { provide: AiService, useValue: aiService },
         { provide: CategoriesStore, useValue: { load: vi.fn(), categories: vi.fn().mockReturnValue([]) } },
         { provide: CoordinatesService, useValue: coordinatesService },
         { provide: ItemsService, useValue: itemsService },
         { provide: PhotoService, useValue: photoService },
         { provide: MapService, useValue: mapService },
-        { provide: ToastService, useValue: { error: vi.fn() } },
+        { provide: ToastService, useValue: { success: vi.fn(), error: vi.fn() } },
       ],
     }).compileComponents();
 

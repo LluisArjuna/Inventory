@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal, type OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { concatMap, of } from 'rxjs';
+import { concatMap, finalize, of } from 'rxjs';
 import { CategoriesStore } from '@shared/stores/categories.store';
+import { AiService } from '@shared/services/ai.service';
 import { CoordinatesService } from '../services/coordinates.service';
 import { ItemsService } from '../services/items.service';
 import { PhotoService } from '../services/photo.service';
@@ -11,7 +12,7 @@ import { Form, FormField, TextInput, TextArea } from '@shared/components/form';
 import { Modal } from '@shared/components/modal/modal';
 import { MapService } from '@shared/services/map.service';
 import { ToastService } from '@shared/services/toast.service';
-import type { Category } from '@shared/models';
+import type { Category, ItemSuggestion } from '@shared/models';
 import * as L from 'leaflet';
 
 @Component({
@@ -22,6 +23,7 @@ import * as L from 'leaflet';
 })
 export class CreateItem implements OnInit {
   protected readonly categoriesStore = inject(CategoriesStore);
+  private readonly aiService = inject(AiService);
   private readonly coordinatesService = inject(CoordinatesService);
   private readonly itemsService = inject(ItemsService);
   private readonly photoService = inject(PhotoService);
@@ -38,7 +40,9 @@ export class CreateItem implements OnInit {
   readonly year = signal<number | null>(null);
   readonly selectedCategory = signal<Category | null>(null);
   readonly selectedFile = signal<File | null>(null);
+  readonly selectedFiles = signal<File[]>([]);
   readonly creating = signal(false);
+  readonly suggesting = signal(false);
 
   readonly marker = signal<L.Marker | null>(null);
   readonly coordText = signal('');
@@ -78,7 +82,35 @@ export class CreateItem implements OnInit {
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.selectedFile.set(input.files?.[0] ?? null);
+    const files = Array.from(input.files ?? []);
+    this.selectedFile.set(files[0] ?? null);
+    this.selectedFiles.set(files);
+  }
+
+  suggestFromPhoto(): void {
+    const files = this.selectedFiles();
+    if (files.length === 0) return;
+
+    this.suggesting.set(true);
+    this.aiService.suggestFromPhotos(files).pipe(
+      finalize(() => this.suggesting.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (s: ItemSuggestion) => {
+        this.name.set(s.name);
+        this.description.set(s.description ?? '');
+        this.year.set(s.year);
+        if (s.categoryName) {
+          const match = this.categoriesStore.categories()
+            .find(c => c.name.toLowerCase() === s.categoryName!.toLowerCase());
+          if (match) this.selectedCategory.set(match);
+        }
+        this.toast.success('Fields auto-filled from photo');
+      },
+      error: () => {
+        this.toast.error('Failed to get AI suggestions');
+      }
+    });
   }
 
   create(): void {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -11,6 +11,8 @@ export class Autocomplete<T extends { id: string }> {
   readonly items = input.required<T[]>();
   readonly displayFn = input.required<(item: T) => string>();
   readonly placeholder = input('Search...');
+
+  readonly value = input<T | null>(null);
 
   readonly selectionChange = output<T>();
 
@@ -29,6 +31,16 @@ export class Autocomplete<T extends { id: string }> {
     return idx >= 0 ? `autocomplete-option-${idx}` : undefined;
   });
 
+  constructor() {
+    effect(() => {
+      const v = this.value();
+      if (v !== null) {
+        this.query.set(this.displayFn()(v));
+        this.selected.set(v);
+      }
+    });
+  }
+
   select(item: T): void {
     this.selected.set(item);
     this.query.set(this.displayFn()(item));
@@ -37,7 +49,9 @@ export class Autocomplete<T extends { id: string }> {
   }
 
   onInput(): void {
-    this.selected.set(null);
+    if (!this.selected() || this.query() !== this.displayFn()(this.selected()!)) {
+      this.selected.set(null);
+    }
     this.showDropdown.set(true);
     this.highlightedIndex.set(-1);
   }

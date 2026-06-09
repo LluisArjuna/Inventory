@@ -1,4 +1,4 @@
-<div class="relative">
+<div class="relative z-9999">
   <input
     type="text"
     role="combobox"
@@ -21,7 +21,7 @@
       id="autocomplete-listbox"
       role="listbox"
       [attr.aria-label]="placeholder()"
-      class="absolute z-20 w-full mt-1 bg-surface-dark border border-border-subtle rounded-lg shadow-lg max-h-48 overflow-y-auto"
+      class="absolute z-10 w-full mt-1 bg-surface-dark border border-border-subtle rounded-lg shadow-lg max-h-48 overflow-y-auto"
     >
       @for (item of filtered(); track item.id; let i = $index) {
         <li
