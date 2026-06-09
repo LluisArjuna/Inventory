@@ -25,6 +25,7 @@
       <app-autocomplete
         [items]="categoriesStore.categories()"
         [displayFn]="categoryDisplay"
+        [value]="selectedCategory()"
         placeholder="Search category..."
         (selectionChange)="selectedCategory.set($event)"
       />
@@ -38,12 +39,31 @@
     </app-form-field>
 
     <app-form-field label="Photo">
-      <input
-        type="file"
-        accept="image/*"
-        (change)="onFileSelected($event)"
-        class="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-white hover:file:bg-primary-hover"
-      />
+      <div class="flex items-center gap-2">
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          (change)="onFileSelected($event)"
+          class="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-white hover:file:bg-primary-hover"
+        />
+        @if (selectedFiles().length > 0) {
+          <button
+            type="button"
+            (click)="suggestFromPhoto()"
+            [disabled]="suggesting()"
+            class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+            [class.bg-primary]="!suggesting()"
+            [class.text-white]="!suggesting()"
+            [class.hover:bg-primary-hover]="!suggesting()"
+            [class.bg-text-secondary]="suggesting()"
+            [class.text-white]="suggesting()"
+            [class.cursor-not-allowed]="suggesting()"
+          >
+            {{ suggesting() ? 'Analyzing...' : 'Suggest' }}
+          </button>
+        }
+      </div>
     </app-form-field>
   </app-form>
 </app-modal>

@@ -34,6 +34,7 @@
                 <app-autocomplete
                   [items]="categoriesStore.categories()"
                   [displayFn]="categoryDisplay"
+                  [value]="selectedCategory()"
                   placeholder="Search category..."
                   (selectionChange)="selectedCategory.set($event)"
                 />

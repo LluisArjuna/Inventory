@@ -19,4 +19,7 @@ export const API_ROUTES = {
   CATEGORIES: '/categories',
   COORDINATES: '/coordinates',
   PHOTOS: '/photos',
+  AI: {
+    ITEM_SUGGESTION: '/ai/item-suggestions',
+  },
 } as const;
