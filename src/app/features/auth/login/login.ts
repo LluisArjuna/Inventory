@@ -16,10 +16,10 @@ export class Login {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  email = signal('');
-  password = signal('');
-  error = signal<string | null>(null);
-  submitting = signal(false);
+  readonly email = signal('');
+  readonly password = signal('');
+  readonly error = signal<string | null>(null);
+  readonly submitting = signal(false);
 
   async onSubmit(): Promise<void> {
     this.error.set(null);

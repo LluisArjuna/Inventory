@@ -48,7 +48,7 @@ export class EditInventory implements OnInit {
   readonly availabilities = signal<AvailabilityDateRange[]>([]);
   readonly savingAvailability = signal(false);
 
-  inventoryId = '';
+  protected inventoryId = '';
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

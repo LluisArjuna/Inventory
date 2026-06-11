@@ -17,11 +17,11 @@ export class Register {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  email = signal('');
-  password = signal('');
-  confirmPassword = signal('');
-  error = signal<string | null>(null);
-  submitting = signal(false);
+  readonly email = signal('');
+  readonly password = signal('');
+  readonly confirmPassword = signal('');
+  readonly error = signal<string | null>(null);
+  readonly submitting = signal(false);
 
   async onSubmit(): Promise<void> {
     this.error.set(null);
