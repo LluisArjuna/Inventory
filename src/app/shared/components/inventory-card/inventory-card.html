@@ -1,7 +1,7 @@
 <div
-  (click)="view.emit(inventory().id)"
-  (keydown.enter)="view.emit(inventory().id)"
-  (keydown.space)="$event.preventDefault(); view.emit(inventory().id)"
+  (click)="onView.emit(inventory().id)"
+  (keydown.enter)="onView.emit(inventory().id)"
+  (keydown.space)="$event.preventDefault(); onView.emit(inventory().id)"
   role="button"
   tabindex="0"
   class="card-dark cursor-pointer group flex flex-col h-full"
@@ -51,18 +51,18 @@
 
     @if (showActions()) {
       <div class="mt-auto pt-3 border-t border-border-subtle flex gap-2">
-        <button (click)="$event.stopPropagation(); toggleVisibility.emit(inventory().id)"
+        <button (click)="$event.stopPropagation(); onToggleVisibility.emit(inventory().id)"
                 class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
                 [class]="inventory().isPublic
                   ? 'border border-border-default text-text-secondary hover:bg-surface-elevated'
                   : 'bg-primary hover:bg-primary-hover text-white'">
           {{ inventory().isPublic ? 'Make Private' : 'Make Public' }}
         </button>
-        <button (click)="$event.stopPropagation(); edit.emit(inventory().id)"
+        <button (click)="$event.stopPropagation(); onEdit.emit(inventory().id)"
                 class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border-default text-text-secondary hover:bg-surface-elevated transition-colors">
           Edit
         </button>
-        <button (click)="$event.stopPropagation(); delete.emit(inventory().id)"
+        <button (click)="$event.stopPropagation(); onDelete.emit(inventory().id)"
                 class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-500 text-white transition-colors">
           Delete
         </button>

@@ -1,7 +1,7 @@
 <div
-  (click)="view.emit(item().id)"
-  (keydown.enter)="view.emit(item().id)"
-  (keydown.space)="$event.preventDefault(); view.emit(item().id)"
+  (click)="onView.emit(item().id)"
+  (keydown.enter)="onView.emit(item().id)"
+  (keydown.space)="$event.preventDefault(); onView.emit(item().id)"
   role="button"
   tabindex="0"
   class="card-dark cursor-pointer flex flex-col h-full"
@@ -50,11 +50,11 @@
 
     @if (showActions()) {
       <div class="pt-3 border-t border-border-subtle mt-auto flex gap-2">
-        <button (click)="$event.stopPropagation(); edit.emit(item().id)"
+        <button (click)="$event.stopPropagation(); onEdit.emit(item().id)"
                 class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border-default text-text-secondary hover:bg-surface-elevated transition-colors">
           Edit
         </button>
-        <button (click)="$event.stopPropagation(); delete.emit(item().id)"
+        <button (click)="$event.stopPropagation(); onDelete.emit(item().id)"
                 class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-500 text-white transition-colors">
           Delete
         </button>

@@ -1,7 +1,7 @@
 @if (totalPages() > 1) {
   <nav aria-label="Pagination" class="flex justify-center gap-2 mt-8">
     <button
-      (click)="pageChange.emit(currentPage() - 1)"
+      (click)="onPageChange.emit(currentPage() - 1)"
       [disabled]="currentPage() === 0"
       class="px-3 py-1.5 text-sm rounded-lg border border-border-default text-text-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-dark"
     >
@@ -10,7 +10,7 @@
 
     @for (page of pages(); track page) {
       <button
-        (click)="pageChange.emit(page)"
+        (click)="onPageChange.emit(page)"
         [attr.aria-current]="page === currentPage() ? 'page' : null"
         class="px-3 py-1.5 text-sm rounded-lg border transition-colors"
         [class]="page === currentPage()
@@ -22,7 +22,7 @@
     }
 
     <button
-      (click)="pageChange.emit(currentPage() + 1)"
+      (click)="onPageChange.emit(currentPage() + 1)"
       [disabled]="currentPage() >= totalPages() - 1"
       class="px-3 py-1.5 text-sm rounded-lg border border-border-default text-text-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-dark"
     >

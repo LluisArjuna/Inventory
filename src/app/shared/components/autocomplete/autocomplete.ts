@@ -14,7 +14,7 @@ export class Autocomplete<T extends { id: string }> {
 
   readonly value = input<T | null>(null);
 
-  readonly selectionChange = output<T>();
+  readonly onSelectionChange = output<T>();
 
   readonly query = signal('');
   readonly selected = signal<T | null>(null);
@@ -45,7 +45,7 @@ export class Autocomplete<T extends { id: string }> {
     this.selected.set(item);
     this.query.set(this.displayFn()(item));
     this.showDropdown.set(false);
-    this.selectionChange.emit(item);
+    this.onSelectionChange.emit(item);
   }
 
   onInput(): void {

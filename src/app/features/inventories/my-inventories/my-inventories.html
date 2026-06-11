@@ -25,9 +25,9 @@
               [firstPhotoUrl]="inv.firstPhotoUrl ?? null"
               [userName]="auth.currentUser()?.email ?? ''"
               [showActions]="true"
-              (toggleVisibility)="onToggleVisibility($event)"
-              (edit)="onEdit($event)"
-              (delete)="onDelete($event)"
+              (onToggleVisibility)="onToggleVisibility($event)"
+              (onEdit)="onEdit($event)"
+              (onDelete)="onDelete($event)"
             />
           }
         </div>
@@ -35,7 +35,7 @@
         <app-pagination
           [currentPage]="currentPage()"
           [totalPages]="totalPages()"
-          (pageChange)="goToPage($event)"
+          (onPageChange)="goToPage($event)"
         />
       }
     </div>

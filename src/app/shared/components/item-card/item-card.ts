@@ -14,9 +14,9 @@ export class ItemCard {
   readonly locationName = input<string>('');
   readonly showActions = input(false);
 
-  readonly view = output<string>();
-  readonly edit = output<string>();
-  readonly delete = output<string>();
+  readonly onView = output<string>();
+  readonly onEdit = output<string>();
+  readonly onDelete = output<string>();
 
   protected readonly imgUrl = getOptimizedImageUrl;
 
