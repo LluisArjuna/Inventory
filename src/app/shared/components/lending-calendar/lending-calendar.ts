@@ -16,7 +16,7 @@ export class LendingCalendar implements OnDestroy {
   readonly editable = input(false);
   readonly availabilities = input<AvailabilityDateRange[]>([]);
 
-  readonly availabilitiesChange = output<AvailabilityDateRange[]>();
+  readonly onAvailabilitiesChange = output<AvailabilityDateRange[]>();
 
   private calendar: Calendar | null = null;
 
@@ -39,7 +39,7 @@ export class LendingCalendar implements OnDestroy {
           endDate: info.endStr,
         };
         const updated = [...this.availabilities(), newRange];
-        this.availabilitiesChange.emit(updated);
+        this.onAvailabilitiesChange.emit(updated);
         this.calendar?.addEvent({ title: 'Available', start: info.startStr, end: info.endStr });
       },
       eventClick: (info) => {
@@ -50,7 +50,7 @@ export class LendingCalendar implements OnDestroy {
           const sameEnd = a.endDate === info.event.endStr;
           return !(sameStart && sameEnd);
         });
-        this.availabilitiesChange.emit(updated);
+        this.onAvailabilitiesChange.emit(updated);
       },
     });
   }

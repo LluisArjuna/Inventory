@@ -37,7 +37,7 @@
 
             <app-item-filter
               [categories]="categoriesStore.categories()"
-              (filterChange)="onFilterChange($event)"
+              (onFilterChange)="onFilterChange($event)"
             />
 
             @if (itemsLoading()) {
@@ -52,8 +52,8 @@
                     [categoryName]="categoriesStore.categoryMap().get(item.categoryId) ?? ''"
                     [locationName]="locationMap().get(item.id) ?? ''"
                     [showActions]="true"
-                    (edit)="onEditItem($event)"
-                    (delete)="deleteItem($event)"
+                    (onEdit)="onEditItem($event)"
+                    (onDelete)="deleteItem($event)"
                   />
                 }
               </div>
@@ -68,7 +68,7 @@
                 calendarId="edit-inventory-calendar"
                 [editable]="true"
                 [availabilities]="availabilities()"
-                (availabilitiesChange)="onAvailabilitiesChange($event)"
+                (onAvailabilitiesChange)="onAvailabilitiesChange($event)"
               />
             </div>
           </section>

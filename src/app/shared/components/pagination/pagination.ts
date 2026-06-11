@@ -9,7 +9,7 @@ export class Pagination {
   readonly currentPage = input.required<number>();
   readonly totalPages = input.required<number>();
 
-  readonly pageChange = output<number>();
+  readonly onPageChange = output<number>();
 
   readonly pages = computed(() =>
     Array.from({ length: this.totalPages() }, (_, i) => i)

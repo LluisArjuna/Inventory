@@ -14,10 +14,10 @@ export class InventoryCard {
   readonly firstPhotoUrl = input<string | null>(null);
   readonly showActions = input(false);
 
-  readonly view = output<string>();
-  readonly edit = output<string>();
-  readonly delete = output<string>();
-  readonly toggleVisibility = output<string>();
+  readonly onView = output<string>();
+  readonly onEdit = output<string>();
+  readonly onDelete = output<string>();
+  readonly onToggleVisibility = output<string>();
 
   protected readonly imgUrl = getOptimizedImageUrl;
 

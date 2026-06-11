@@ -27,7 +27,7 @@
         [displayFn]="categoryDisplay"
         [value]="selectedCategory()"
         placeholder="Search category..."
-        (selectionChange)="selectedCategory.set($event)"
+        (onSelectionChange)="selectedCategory.set($event)"
       />
     </app-form-field>
 

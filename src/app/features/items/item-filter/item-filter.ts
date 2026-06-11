@@ -16,7 +16,7 @@ export class ItemFilter {
 
   readonly categories = input<Category[]>([]);
 
-  readonly filterChange = output<{ name?: string; categoryId?: string; year?: number }>();
+  readonly onFilterChange = output<{ name?: string; categoryId?: string; year?: number }>();
 
   readonly filterName = signal('');
   readonly filterCategoryId = signal('');
@@ -33,7 +33,7 @@ export class ItemFilter {
   }
 
   private emitFilters(): void {
-    this.filterChange.emit({
+    this.onFilterChange.emit({
       name: this.filterName() || undefined,
       categoryId: this.filterCategoryId() || undefined,
       year: this.filterYear() ?? undefined
