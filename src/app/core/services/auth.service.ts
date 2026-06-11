@@ -14,15 +14,10 @@ import {
 } from 'firebase/auth';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { User } from '@shared/models';
+import type { User, AuthResponse } from '@shared/models';
 import { ApiService } from './api.service';
 import { STORAGE_KEYS } from '../constants/storage-keys';
 import { API_ROUTES } from '../constants/api-routes';
-
-interface AuthResponse {
-  token: string;
-  type: string;
-}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

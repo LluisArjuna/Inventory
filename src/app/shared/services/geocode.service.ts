@@ -3,6 +3,7 @@ import { Observable, of, timer, forkJoin } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { ApiService } from '@core/services/api.service';
 import { API_ROUTES } from '@core/constants/api-routes';
+import type { GeocodeResult, BoundingBox } from '@shared/models';
 
 interface NominatimAddress {
   address: {
@@ -19,17 +20,6 @@ interface NominatimSearchResult {
   lat: string;
   lon: string;
   boundingbox?: [string, string, string, string];
-}
-
-export interface GeocodeResult {
-  locationName: string;
-}
-
-export interface BoundingBox {
-  minLat: number;
-  maxLat: number;
-  minLng: number;
-  maxLng: number;
 }
 
 @Injectable({ providedIn: 'root' })

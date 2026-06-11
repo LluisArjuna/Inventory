@@ -7,3 +7,6 @@ export type { Photo } from './photo.model';
 export type { Page } from './page.model';
 export type { AvailabilityDateRange } from './availability.model';
 export type { ItemSuggestion } from './item-suggestion.model';
+export type { Toast } from './toast.model';
+export type { AuthResponse } from './auth-response.model';
+export type { GeocodeResult, BoundingBox } from './geocode.model';
