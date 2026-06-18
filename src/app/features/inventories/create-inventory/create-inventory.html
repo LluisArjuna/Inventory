@@ -1,0 +1,17 @@
+<article class="max-w-2xl mx-auto mt-20 bg-surface-dark border border-border-subtle rounded-xl shadow-lg p-6">
+  <app-form
+    title="Create Inventory"
+    [disabled]="creating()"
+    [valid]="name().trim().length > 0"
+    [loading]="creating()"
+    submitText="Create"
+    loadingText="Creating..."
+    (cancel)="onClose.emit()"
+    (submit)="create()"
+  >
+    <app-text-input label="Name" [(value)]="name" placeholder="Inventory name" [required]="true" />
+    <app-text-area label="Description" [(value)]="description" placeholder="Optional description" />
+    <app-checkbox label="Public inventory" [(checked)]="isPublic" />
+  </app-form>
+</article>
+

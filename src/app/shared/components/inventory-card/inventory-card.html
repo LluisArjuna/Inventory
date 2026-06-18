@@ -1,0 +1,72 @@
+<div
+  (click)="onView.emit(inventory().id)"
+  (keydown.enter)="onView.emit(inventory().id)"
+  (keydown.space)="$event.preventDefault(); onView.emit(inventory().id)"
+  role="button"
+  tabindex="0"
+  class="card-dark cursor-pointer group flex flex-col h-full"
+>
+  <div class="h-48 bg-surface-nav flex items-center justify-center relative shrink-0">
+    @if (firstPhotoUrl(); as url) {
+      <img [src]="imgUrl(url)" [alt]="'Photo of ' + inventory().name" class="w-full h-full object-cover" />
+    } @else {
+      <svg class="w-16 h-16 text-gray-600" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+    }
+
+    @if (showActions()) {
+      <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button (click)="$event.stopPropagation()" aria-label="More options"
+                class="p-2 bg-surface-dark/90 hover:bg-surface-elevated rounded-lg backdrop-blur-sm">
+          <svg class="w-4 h-4 text-gray-300" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01" />
+          </svg>
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="p-4 flex flex-col flex-1">
+    <div class="flex items-start justify-between gap-2 mb-2">
+      <h3 class="text-white font-semibold truncate flex-1">{{ inventory().name }}</h3>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+            [class]="inventory().isPublic
+              ? 'bg-green-deep text-green-accent'
+              : 'bg-surface-elevated text-text-secondary'">
+        {{ inventory().isPublic ? 'Public' : 'Private' }}
+      </span>
+    </div>
+
+    @if (truncatedDescription()) {
+      <p class="text-text-secondary text-sm line-clamp-2 mb-3">{{ truncatedDescription() }}</p>
+    }
+
+    <p class="text-gray-500 text-xs flex items-center gap-1.5">
+      <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+      {{ userName() }}
+    </p>
+
+    @if (showActions()) {
+      <div class="mt-auto pt-3 border-t border-border-subtle flex gap-2">
+        <button (click)="$event.stopPropagation(); onToggleVisibility.emit(inventory().id)"
+                class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                [class]="inventory().isPublic
+                  ? 'border border-border-default text-text-secondary hover:bg-surface-elevated'
+                  : 'bg-primary hover:bg-primary-hover text-white'">
+          {{ inventory().isPublic ? 'Make Private' : 'Make Public' }}
+        </button>
+        <button (click)="$event.stopPropagation(); onEdit.emit(inventory().id)"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border-default text-text-secondary hover:bg-surface-elevated transition-colors">
+          Edit
+        </button>
+        <button (click)="$event.stopPropagation(); onDelete.emit(inventory().id)"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-500 text-white transition-colors">
+          Delete
+        </button>
+      </div>
+    }
+  </div>
+</div>

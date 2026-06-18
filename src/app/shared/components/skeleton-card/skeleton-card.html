@@ -1,0 +1,12 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  @for (_ of items(); track $index) {
+    <div class="rounded-xl overflow-hidden bg-surface-dark border border-border-subtle animate-pulse">
+      <div class="h-48 bg-surface-nav"></div>
+      <div class="p-4 space-y-3">
+        <div class="h-5 bg-surface-elevated rounded w-3/4"></div>
+        <div class="h-4 bg-surface-elevated rounded w-full"></div>
+        <div class="h-4 bg-surface-elevated rounded w-1/2"></div>
+      </div>
+    </div>
+  }
+</div>

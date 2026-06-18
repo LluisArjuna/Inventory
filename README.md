@@ -1,97 +1,182 @@
-# Movie App – Explorador i Gestor de Favorits
+# Inventory App
 
-Aplicació web SPA desenvolupada amb Angular que permet explorar pel·lícules, consultar detalls i gestionar una llista de favorits sincronitzada amb Firebase.
+Inventory App is an Angular web application for managing item inventories with geographic location, photo uploads, category organization, and AI-powered item suggestions. It connects authenticated users to their personal inventories through map-based item placement, image galleries, and Ollama-powered form autocompletion.
 
----
+The product goal is to provide a centralized platform for individuals and organizations to catalog, organize, and locate physical items with visual references and spatial context.
 
-## 🚀 Objectiu del projecte
+## Main Features
 
-Permetre als usuaris:
+- Firebase authentication with email/password and Google sign-in.
+- Personal inventory management with create, edit, and delete flows.
+- Category-based item organization with autocomplete selection.
+- Item creation with map-based location picker (Leaflet) and reverse geocoding.
+- Multi-photo upload per item with Cloudinary integration.
+- AI-powered item form suggestions from photos using Ollama vision models.
+- Public inventory sharing and item filtering by name, category, and year.
+- Statistics dashboard with charts (Chart.js) for inventory and item metrics.
 
-Explorar pel·lícules populars
-Cercar pel·lícules per nom
-Consultar informació detallada (cast, director, etc.)
-Marcar i desmarcar pel·lícules com a favorites
-Persistir els favorits al núvol (Firebase)
-Visualitzar una llista de pel·lícules favorites en temps real
+## Tech Stack
 
-L’objectiu és practicar arquitectura moderna en Angular amb integració real de backend i experiència d’usuari reactiva.
-
----
-
-## 🛠️ Tecnologies utilitzades
-
-- Angular (Standalone Components + Angular 17/21 control flow)
+- Angular 21 (Standalone Components, Signals)
 - TypeScript
-- Signals + RxJS
-- Firebase (Auth + Firestore)
-- TMDB API (The Movie Database)
-- CSS (responsive design)
+- RxJS
+- Firebase Authentication
+- Leaflet (interactive maps)
+- Chart.js / ng2-charts (statistics)
+- Tailwind CSS 4
+- PostCSS
+- Vitest through Angular's unit test builder
 
----
+## Requirements
 
-## 🖥️ System Requirements
+- Node.js compatible with Angular 21
+- npm
+- A running Inventory backend API
+- Firebase project credentials for authentication
+- Cloudinary account for image uploads
+- Ollama with a vision model (e.g. `llava`) for AI suggestions
 
-### Required Software
+## Setup
 
-1️⃣ Node.js
-
-2️⃣ npm
-
-3️⃣ Angular CLI
+Install dependencies:
 
 ```bash
-npm install -g @angular/cli
+npm install
 ```
 
-### Project Installation
+For local development, the app uses `src/environments/environment.development.ts`, which points to:
 
-Clone the repository:
-
-```bash
-git clone https://github.com/LluisArjuna/project-movies.git
-cd project-movies
+```text
+http://localhost:8080
 ```
 
-### Environment Configuration
+Make sure the backend API is available at that URL, or update `API_BASE_URL` in the environment file for your local setup.
 
-Create an environment.ts file with:
+## Execution
+
+Start the local development server:
 
 ```bash
-export const environment = {
-  firebase: {
-    apiKey: 'YOUR_KEY',
-    authDomain: 'YOUR_DOMAIN',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_BUCKET',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    appId: 'YOUR_APP_ID'
-  },
-  tmdbApiKey: 'YOUR_TMDB_API_KEY'
-};
+ng serve
 ```
 
----
+Open the app at:
 
-### Project Execution
-
-```bash
-ng serve --open
+```text
+http://localhost:4200
 ```
 
----
-
-## 📦 Estructura del projecte
+Create a production build:
 
 ```bash
+npm run build
+```
+
+## Testing
+
+Tests are configured through Angular's unit test builder and Vitest.
+
+### Run Tests
+
+```bash
+npm test
+```
+
+This runs the full suite once. Vitest runs in watch mode by default; `npm test` maps to `ng test --watch=false` so it exits after the run.
+
+### Run Coverage
+
+```bash
+npm run test:coverage
+```
+
+Generates a text summary in the terminal, a JSON summary at `coverage/coverage-summary.json`, and an HTML report at `coverage/index.html`.
+
+### Test Architecture
+
+| Pattern | Use |
+|---------|-----|
+| `TestBed.configureTestingModule` with `provideHttpClient`/`provideHttpClientTesting` | API service specs — mock `HttpTestingController` |
+| `TestBed.runInInjectionContext` | Functional guards and interceptors |
+| `TestBed.createComponent` + `fixture.componentRef.setInput` | Standalone component specs with signal inputs |
+| Plain function imports | Pure mappers, utilities, pipes, validators |
+| Store `@Injectable()` classes with mocked dependencies via `TestBed` | State store specs (`provide` dependency overrides) |
+| `vi.mock('@angular/fire/auth', ...)` | Firebase auth mocking for auth service |
+
+## Architecture Overview
+
+The application follows a feature-first Angular structure.
+
+```text
 src/app/
-├── core/ → API config, layouts
-├── features/
-│   ├── movies/ → Lògica de pel·lícules
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── models/
-│   ├── firestore/ → Gestió d'Usuaris (Firestore)
-
+  core/       Cross-cutting app infrastructure
+  features/   Route-level product areas
+  shared/     Reusable components, models, services, and utilities
 ```
+
+### Core
+
+`src/app/core` contains application-wide infrastructure:
+
+- `guards`: authentication and role-based route guards.
+- `interceptors`: auth token attachment and API error handling.
+- `layout`: navbar and layout components.
+- `constants`: API route definitions.
+- `services`: authentication, API, map, toast notifications, and geocoding services.
+
+### Features
+
+`src/app/features` contains route-level business areas:
+
+- `auth`: login and registration pages.
+- `inventories`: personal inventory CRUD and public inventory browsing.
+- `items`: item CRUD with map location, photo upload, and AI suggestion integration.
+
+### Shared
+
+`src/app/shared` contains reusable building blocks:
+
+- UI components: autocomplete, form fields, modal, pagination, back button.
+- DTO and view-model definitions.
+- API services for categories, coordinates, items, photos, and inventories.
+- Data stores (signals-based) for categories.
+- Utility functions.
+
+### Routing And Data Flow
+
+Routes are defined in `src/app/app.routes.ts` and lazy-load standalone components. Protected routes use `authGuard`.
+
+HTTP requests go through Angular's `HttpClient` with the configured auth and error interceptors. Backend calls use `environment.API_BASE_URL`. Firebase Authentication provides the user session.
+
+## AI-Powered Item Suggestions
+
+The app includes an AI suggestion feature that analyzes item photos and auto-fills the create-item form:
+
+1. Select one or more photos in the create-item form.
+2. Click **Suggest** — the photos are sent to the backend's `POST /api/ai/item-suggestions` endpoint.
+3. Ollama's vision model (`llava`) analyzes the images and returns suggested `name`, `description`, `year`, and `categoryName`.
+4. The form fields are automatically populated, including category autocomplete selection.
+
+## Environment Variables
+
+Production builds read environment variables and generate `src/environments/environment.ts`.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `API_BASE_URL` | Base URL for the Inventory backend API. | `http://localhost:8080` |
+| `FIREBASE_API_KEY` | Firebase web API key. | None |
+| `FIREBASE_AUTH_DOMAIN` | Firebase authentication domain. | None |
+| `FIREBASE_PROJECT_ID` | Firebase project ID. | None |
+| `FIREBASE_STORAGE_BUCKET` | Firebase storage bucket. | None |
+| `FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID. | None |
+| `FIREBASE_APP_ID` | Firebase app ID. | None |
+
+## Useful Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm install` | Install dependencies. |
+| `ng serve` | Start the local development server. |
+| `npm run build` | Build the app for production. |
+| `npm test` | Run unit tests. |
+| `npm run test:coverage` | Run unit tests with coverage report. |

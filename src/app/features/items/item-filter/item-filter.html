@@ -1,0 +1,49 @@
+<fieldset class="border-0 p-0 m-0">
+  <legend class="sr-only">Filters</legend>
+  <div class="flex items-end gap-4 flex-wrap">
+  <div class="flex-1 min-w-[200px]">
+    <label class="block text-sm font-medium text-text-secondary mb-1">Item name</label>
+    <input
+      type="text"
+      [ngModel]="filterName()"
+      (ngModelChange)="onNameChange($event)"
+      placeholder="Search by name..."
+      class="input-field"
+    />
+  </div>
+
+  <div class="w-48">
+    <label class="block text-sm font-medium text-text-secondary mb-1">Category</label>
+    <select
+      [ngModel]="filterCategoryId()"
+      (ngModelChange)="onCategoryChange($event)"
+      class="w-full bg-surface-nav border border-border-default rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none text-sm"
+    >
+      <option value="" class="bg-surface-nav">All categories</option>
+      @for (cat of categories(); track cat.id) {
+        <option [value]="cat.id" class="bg-surface-nav">{{ cat.name }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="w-32">
+    <label class="block text-sm font-medium text-text-secondary mb-1">Year</label>
+    <input
+      type="number"
+      [ngModel]="filterYear()"
+      (ngModelChange)="onYearChange($event)"
+      placeholder="Year"
+      class="input-field"
+    />
+  </div>
+
+  <div>
+    <button
+      (click)="clearFilters()"
+      class="px-4 py-2 text-sm font-medium rounded-lg border border-border-default text-text-secondary hover:bg-surface-elevated transition"
+    >
+      Clear
+    </button>
+  </div>
+</div>
+</fieldset>

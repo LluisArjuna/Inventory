@@ -1,0 +1,40 @@
+<div class="relative z-9999">
+  <input
+    type="text"
+    role="combobox"
+    [attr.aria-expanded]="showDropdown() && filtered().length > 0"
+    aria-haspopup="listbox"
+    [attr.aria-controls]="(showDropdown() && filtered().length > 0) ? 'autocomplete-listbox' : null"
+    [attr.aria-activedescendant]="activeDescendantId()"
+    aria-autocomplete="list"
+    [ngModel]="query()"
+    (ngModelChange)="query.set($event); onInput()"
+    (focus)="onInput()"
+    (blur)="onBlur()"
+    (keydown)="onKeydown($event)"
+    [placeholder]="placeholder()"
+    class="input-field"
+  />
+
+  @if (showDropdown() && filtered().length > 0) {
+    <ul
+      id="autocomplete-listbox"
+      role="listbox"
+      [attr.aria-label]="placeholder()"
+      class="absolute z-10 w-full mt-1 bg-surface-dark border border-border-subtle rounded-lg shadow-lg max-h-48 overflow-y-auto"
+    >
+      @for (item of filtered(); track item.id; let i = $index) {
+        <li
+          id="autocomplete-option-{{ i }}"
+          role="option"
+          [attr.aria-selected]="i === highlightedIndex()"
+          (mousedown)="select(item)"
+          class="px-3 py-2 text-sm cursor-pointer text-white"
+          [class]="i === highlightedIndex() ? 'bg-surface-elevated' : 'hover:bg-surface-elevated'"
+        >
+          {{ displayFn()(item) }}
+        </li>
+      }
+    </ul>
+  }
+</div>

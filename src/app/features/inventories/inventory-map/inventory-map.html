@@ -1,0 +1,30 @@
+<section class="pb-12">
+  <div class="pt-12 px-4">
+    <div class="max-w-7xl mx-auto">
+      @if (loading()) {
+        <p class="text-text-secondary">Loading map...</p>
+      } @else if (inventory(); as inv) {
+        <app-back-button [route]="['/inventories', inv.id]" label="Back to inventory" />
+
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-3xl font-bold text-white mb-1">{{ inv.name }}</h1>
+            <p class="text-text-secondary text-sm flex items-center gap-2">
+              {{ geocodedItems().length }} of {{ items().length }} items on map
+            </p>
+          </div>
+        </div>
+
+        @if (geocodedItems().length === 0) {
+          <div class="bg-surface-dark border border-border-subtle rounded-xl p-12 text-center">
+            <p class="text-text-secondary">No items in this inventory have location coordinates.</p>
+          </div>
+        } @else {
+          <div class="bg-surface-dark border border-border-subtle rounded-xl overflow-hidden">
+            <div id="inventory-map" class="h-600px" role="application" aria-label="Inventory map"></div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</section>

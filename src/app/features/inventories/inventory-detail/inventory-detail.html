@@ -1,0 +1,102 @@
+<section class="pb-12">
+  <div class="pt-12 px-4">
+    <div class="max-w-7xl mx-auto">
+      @if (loading()) {
+        <p class="text-text-secondary">Loading inventory...</p>
+      } @else if (error(); as msg) {
+        <div class="text-center py-12">
+          <p class="text-text-secondary mb-4">{{ msg }}</p>
+          @if (!auth.currentUser()) {
+            <a routerLink="/login" class="text-primary hover:text-primary-hover">Sign in</a>
+          }
+        </div>
+      } @else {
+        @if (inventory(); as inv) {
+          <app-back-button [route]="['/']" label="Back to inventories" />
+
+          <div class="mb-8">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h1 class="text-3xl font-bold text-white">{{ inv.name }}</h1>
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+                        [class]="inv.isPublic ? 'bg-green-deep text-green-accent' : 'bg-surface-elevated text-text-secondary'">
+                    {{ inv.isPublic ? 'Public' : 'Private' }}
+                  </span>
+                </div>
+                @if (inv.description) {
+                  <p class="text-text-secondary">{{ inv.description }}</p>
+                }
+              </div>
+              <div class="flex gap-2">
+                @if (items().length > 0) {
+                  <button (click)="goToMap(inv.id)"
+                          class="px-4 py-2 rounded-lg text-sm font-medium border border-border-default text-text-secondary hover:bg-surface-dark transition-colors">
+                    View on Map
+                  </button>
+                  <button (click)="goToStats(inv.id)"
+                          class="px-4 py-2 rounded-lg text-sm font-medium border border-border-default text-text-secondary hover:bg-surface-dark transition-colors">
+                    Statistics
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="bg-surface-dark border border-border-subtle rounded-xl p-4">
+              <app-item-filter
+                [categories]="categoriesStore.categories()"
+                (onFilterChange)="onFilterChange($event)"
+              />
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-white">
+                  Items @if (items().length > 0) { <span class="text-text-secondary font-normal">({{ items().length }})</span> }
+                </h2>
+              </div>
+
+              @if (items().length === 0) {
+                <div class="text-center py-12 bg-surface-dark border border-border-subtle rounded-xl">
+                  <p class="text-text-secondary">This inventory has no items yet.</p>
+                </div>
+              } @else {
+                <div role="list" aria-label="Items" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                  @for (item of items(); track item.id) {
+                    <app-item-card
+                      [item]="item"
+                      [categoryName]="categoriesStore.categoryMap().get(item.categoryId) ?? ''"
+                      [locationName]="locationMap().get(item.id) ?? ''"
+                      (onView)="goToItemDetail($event)"
+                    />
+                  }
+                </div>
+
+                <app-pagination
+                  [currentPage]="currentPage()"
+                  [totalPages]="totalPages()"
+                  (onPageChange)="goToPage($event)"
+                />
+              }
+            </div>
+          </div>
+
+          @if (availabilities().length > 0) {
+            <section class="bg-surface-dark border border-border-subtle rounded-xl p-6 mt-8" aria-labelledby="avail-heading">
+              <h2 id="avail-heading" class="text-xl font-semibold text-white mb-4">Lending Availability</h2>
+              <div class="calendar-dark">
+                <app-lending-calendar
+                  calendarId="inventory-detail-calendar"
+                  [editable]="false"
+                  [availabilities]="availabilities()"
+                />
+              </div>
+            </section>
+          }
+        }
+      }
+    </div>
+  </div>
+</section>

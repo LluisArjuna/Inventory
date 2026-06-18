@@ -1,0 +1,10 @@
+<app-form-field [label]="label()" [required]="required()">
+  <textarea
+    [ngModel]="value()"
+    (ngModelChange)="value.set($event)"
+    class="input-field"
+    [placeholder]="placeholder()"
+    rows="3"
+    [attr.aria-required]="required() ? 'true' : null"
+  ></textarea>
+</app-form-field>

@@ -1,0 +1,69 @@
+<app-modal [open]="true" (onClose)="onClose.emit()">
+  <app-form
+    title="Create Item"
+    [disabled]="creating()"
+    [valid]="canCreate()"
+    [loading]="creating()"
+    submitText="Create"
+    loadingText="Creating..."
+    (cancel)="onClose.emit()"
+    (submit)="create()"
+  >
+    <app-text-input label="Name" [(value)]="name" placeholder="Item name" [required]="true" />
+    <app-text-area label="Description" [(value)]="description" placeholder="Optional description" />
+    <app-form-field label="Year" [required]="true">
+      <input
+        type="number"
+        [ngModel]="year()"
+        (ngModelChange)="year.set($event)"
+        class="input-field"
+        placeholder="e.g. 2024"
+      />
+    </app-form-field>
+
+    <app-form-field label="Category" [required]="true">
+      <app-autocomplete
+        [items]="categoriesStore.categories()"
+        [displayFn]="categoryDisplay"
+        [value]="selectedCategory()"
+        placeholder="Search category..."
+        (onSelectionChange)="selectedCategory.set($event)"
+      />
+    </app-form-field>
+
+    <app-form-field label="Location" [required]="true">
+      <div id="map" class="h-48 overflow-hidden rounded-lg border border-border-default" role="img" aria-label="Location picker map"></div>
+      @if (coordText()) {
+        <p class="text-xs text-text-secondary mt-1">Selected: {{ coordText() }}</p>
+      }
+    </app-form-field>
+
+    <app-form-field label="Photo">
+      <div class="flex items-center gap-2">
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          (change)="onFileSelected($event)"
+          class="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-white hover:file:bg-primary-hover"
+        />
+        @if (selectedFiles().length > 0) {
+          <button
+            type="button"
+            (click)="suggestFromPhoto()"
+            [disabled]="suggesting()"
+            class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+            [class.bg-primary]="!suggesting()"
+            [class.text-white]="!suggesting()"
+            [class.hover:bg-primary-hover]="!suggesting()"
+            [class.bg-text-secondary]="suggesting()"
+            [class.text-white]="suggesting()"
+            [class.cursor-not-allowed]="suggesting()"
+          >
+            {{ suggesting() ? 'Analyzing...' : 'Suggest' }}
+          </button>
+        }
+      </div>
+    </app-form-field>
+  </app-form>
+</app-modal>

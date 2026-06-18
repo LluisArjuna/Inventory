@@ -1,0 +1,9 @@
+<div>
+  <label class="block text-sm font-medium text-text-secondary mb-1">
+    {{ label() }}
+    @if (required()) {
+      <span class="text-red-400">*</span>
+    }
+  </label>
+  <ng-content />
+</div>
